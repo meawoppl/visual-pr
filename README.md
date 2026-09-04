@@ -161,6 +161,13 @@ The [spec](SPEC.md) is short and opinionated. The essentials:
 | `respect-linguist` | `true` | Leave `linguist-generated`/`linguist-vendored` files and common lockfiles out of that count |
 | `extra-args` | — | Extra flags appended to the `check_svg.py` run, e.g. `--i-support-this-software` |
 
+### Outputs
+
+| Output | Values |
+|---|---|
+| `outcome` | `passed`, `skipped-label`, `skipped-small-change`, `missing`, `invalid`, `bad-style` |
+| `svg` | the path the check looked for, e.g. `000-pr-visualization/000412.svg` |
+
 ### Escapes
 
 Not every PR deserves a diagram. Two ways out, both decided by the base

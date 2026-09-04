@@ -61,10 +61,21 @@ inputs:
       (see LICENSE).
     default: ''
 
+outputs:
+  outcome:
+    description: >-
+      What happened: passed | skipped-label | skipped-small-change | missing |
+      invalid | bad-style. Useful for follow-up steps (comments, metrics).
+    value: ${{ steps.check.outputs.outcome }}
+  svg:
+    description: 'Path, under head-path, of the SVG the check looked for'
+    value: ${{ steps.check.outputs.svg }}
+
 runs:
   using: 'composite'
   steps:
     - name: Require and validate the PR visual summary
+      id: check
       shell: bash
       env:
         PR_NUMBER: ${{ inputs.pr-number }}
@@ -85,8 +96,10 @@ runs:
         ACTION_REF: ${{ github.action_ref }}
       run: |
         set -u
+        outcome() { echo "outcome=$1" >> "${GITHUB_OUTPUT:-/dev/null}"; }
         if printf '%s' "$LABELS_JSON" | grep -q "\"${SKIP_LABEL}\""; then
           echo "PR is labeled '${SKIP_LABEL}' — visual summary not required."
+          outcome skipped-label
           exit 0
         fi
 
@@ -99,6 +112,7 @@ runs:
           SVG_NAME="${PR_NUMBER}.svg"
         fi
         FILE="${HEAD_PATH}/${SVG_DIR}/${SVG_NAME}"
+        echo "svg=${SVG_DIR}/${SVG_NAME}" >> "${GITHUB_OUTPUT:-/dev/null}"
         # `style` is either a path in the consuming repo or a bundled name.
         STYLE_FILE=""; BUNDLED_STYLE=""
         if [ -n "$STYLE" ]; then
@@ -110,6 +124,7 @@ runs:
             BUNDLED=""
             for f in "${ACTION_PATH}/style/"*.json; do n="$(basename "$f" .json)"; BUNDLED="${BUNDLED:+${BUNDLED},}${n}"; done
             echo "::error::style '${STYLE}' is neither a file nor a bundled style (${BUNDLED})"
+            outcome bad-style
             exit 1
           fi
         fi
@@ -200,6 +215,7 @@ runs:
              && COUNT="$(printf '%s\n' "$FILES_JSON" | python3 "${ACTION_PATH}/changed_lines.py" "${COUNT_ARGS[@]}")"; then
             if [ "$COUNT" -lt "$MIN_CHANGED_LINES" ]; then
               echo "PR changes ${COUNT} counted line(s), under min-changed-lines=${MIN_CHANGED_LINES} — visual summary not required."
+              outcome skipped-small-change
               exit 0
             fi
             echo "PR changes ${COUNT} counted line(s) (min-changed-lines=${MIN_CHANGED_LINES}); visual summary required."
@@ -211,13 +227,16 @@ runs:
         if [ ! -f "$FILE" ]; then
           emit_fix_instructions "missing ${SVG_DIR}/${SVG_NAME}"
           echo "::error::Missing ${SVG_DIR}/${SVG_NAME} — see the job log/summary for the full authoring spec and the local check to run."
+          outcome missing
           exit 1
         fi
 
         if ! python3 "${ACTION_PATH}/check_svg.py" "${STYLE_ARGS[@]}" "${EXTRA[@]}" "$FILE"; then
           emit_fix_instructions "${SVG_DIR}/${SVG_NAME} failed validation (see ERROR lines above)"
           echo "::error::${SVG_DIR}/${SVG_NAME} failed validation — see the job log/summary for the spec and the local check to run."
+          outcome invalid
           exit 1
         fi
 
         echo "Visual summary present and valid: ${SVG_DIR}/${SVG_NAME}"
+        outcome passed

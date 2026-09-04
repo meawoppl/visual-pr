@@ -62,10 +62,15 @@ def run_action(tmp_path, workspace, fake_gh):
     script = action_script()
 
     def _run(**over):
-        summary = tmp_path / f"summary-{len(os.listdir(tmp_path))}.md"
+        n = len(os.listdir(tmp_path))
+        summary = tmp_path / f"summary-{n}.md"
         summary.touch()
+        output = tmp_path / f"output-{n}.txt"
+        output.touch()
+        _run.last_output = output
         env = dict(
             os.environ,
+            GITHUB_OUTPUT=str(output),
             PATH=f"{fake_gh['bin']}:{os.environ['PATH']}",
             ACTION_PATH=str(ROOT),
             ACTION_REPO="",
@@ -93,12 +98,19 @@ def run_action(tmp_path, workspace, fake_gh):
     return _run
 
 
+def outcome(run_action) -> str:
+    text = run_action.last_output.read_text()
+    return dict(l.split("=", 1) for l in text.splitlines() if "=" in l).get("outcome", "")
+
+
 # ---- the basics -----------------------------------------------------------
 
 
 def test_valid_svg_passes(run_action):
     rc, out, summary = run_action(PR_NUMBER="valid")
     assert rc == 0 and "Visual summary present and valid" in out and summary == ""
+    assert outcome(run_action) == "passed"
+    assert "svg=tests/fixtures/valid.svg" in run_action.last_output.read_text()
 
 
 def test_missing_svg_fails_with_the_full_recipe(run_action):
@@ -115,11 +127,13 @@ def test_missing_svg_fails_with_the_full_recipe(run_action):
     ):
         assert needle in summary, needle
     assert SUPPORT_FLAG not in summary, "the opt-out never appears in the recipe"
+    assert outcome(run_action) == "missing"
 
 
 def test_invalid_svg_fails(run_action):
     rc, out, summary = run_action(PR_NUMBER="off-palette")
     assert rc == 1 and "failed validation" in summary and "off-palette" in out
+    assert outcome(run_action) == "invalid"
 
 
 def test_six_digit_padding(run_action):
@@ -139,11 +153,13 @@ def test_styles_by_file_and_by_name_and_unknown(run_action):
     assert "python3 check_svg.py --style dracula --style-x examples/nord/000412.svg" in summary
     rc, out, _ = run_action(STYLE="not-a-style")
     assert rc == 1 and "neither a file nor a bundled style" in out
+    assert outcome(run_action) == "bad-style"
 
 
 def test_skip_label(run_action):
     rc, out, _ = run_action(PR_NUMBER="999999", LABELS_JSON='["bug","no-visual"]')
     assert rc == 0 and "not required" in out
+    assert outcome(run_action) == "skipped-label"
 
 
 # ---- the small-change escape ---------------------------------------------
@@ -159,6 +175,7 @@ def test_small_pr_without_svg_passes(run_action, fake_gh):
     assert rc == 0, out
     assert "PR changes 18 counted line(s), under min-changed-lines=40" in out
     assert summary == ""
+    assert outcome(run_action) == "skipped-small-change"
     assert "repos/acme/widgets/pulls/55/files" in fake_gh["log"].read_text()
 
 

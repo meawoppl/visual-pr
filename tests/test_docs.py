@@ -14,8 +14,12 @@ TEMPLATE = (ROOT / "template.svg").read_text()
 DEFAULT_STYLE = json.loads((ROOT / "style" / "default.json").read_text())
 
 
+def inputs_block() -> str:
+    return ACTION.split("\ninputs:\n", 1)[1].split("\noutputs:\n", 1)[0].split("\nruns:\n", 1)[0]
+
+
 def action_inputs() -> list[str]:
-    block = ACTION.split("\ninputs:\n", 1)[1].split("\nruns:\n", 1)[0]
+    block = inputs_block()
     return re.findall(r"^  ([a-z][a-z0-9-]*):\s*$", block, flags=re.M)
 
 
@@ -35,12 +39,23 @@ def test_readme_table_has_no_phantom_inputs():
 
 
 def test_action_inputs_all_have_defaults_and_descriptions():
-    block = "\n" + ACTION.split("\ninputs:\n", 1)[1].split("\nruns:\n", 1)[0]
+    block = "\n" + inputs_block()
     for name in action_inputs():
         rest = block.split(f"\n  {name}:\n", 1)[1]
         section = re.split(r"\n  (?=\S)", rest, maxsplit=1)[0]
         assert "description:" in section, f"{name} lacks a description"
         assert "default:" in section, f"{name} lacks a default"
+
+
+def test_every_action_output_is_documented():
+    block = ACTION.split("\noutputs:\n", 1)[1].split("\nruns:\n", 1)[0]
+    outputs = re.findall(r"^  ([a-z][a-z0-9-]*):\s*$", block, flags=re.M)
+    assert outputs == ["outcome", "svg"]
+    for name in outputs:
+        assert re.search(rf"^\| `{name}` \|", README, flags=re.M), f"output '{name}' missing from README"
+    for value in ("passed", "skipped-label", "skipped-small-change", "missing", "invalid", "bad-style"):
+        assert f"outcome {value}" in ACTION, f"action never emits outcome {value}"
+        assert f"`{value}`" in README
 
 
 def test_readme_documents_every_style_key():
