@@ -34,7 +34,7 @@ jobs:
         run: |
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.7
           ./actionlint -color
-      - name: shellcheck (the composite action's run: block)
+      - name: "shellcheck (the composite action's run block)"
         run: |
           python3 - <<'EOF'
           import pathlib
