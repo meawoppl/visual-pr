@@ -16,14 +16,14 @@
 
   <!-- BEFORE: dataflow through action.yml -->
   <g>
-    <rect x="80" y="250" width="560" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <rect x="80" y="250" width="620" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
     <text x="104" y="290" font-size="26" fill="#7aa2f7">action.yml · pull_request_target</text>
     <text x="104" y="328" font-size="23" fill="#a9b1d6">types: opened, synchronize, reopened, labeled</text>
     <text x="104" y="362" font-size="22" fill="#565f89">head checked out as data; body never read</text>
   </g>
   <line x1="360" y1="380" x2="360" y2="425" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
   <g>
-    <rect x="80" y="430" width="560" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <rect x="80" y="430" width="620" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
     <text x="104" y="470" font-size="26" fill="#c0caf5">check_svg.py --style … .0-pr-viz/000003.svg</text>
     <text x="104" y="508" font-size="23" fill="#a9b1d6">palette, canvas, glyphs, text fit → outcome passed</text>
     <text x="104" y="542" font-size="22" fill="#565f89">exit 0: the file is there and valid</text>
@@ -42,7 +42,7 @@
   <g>
     <rect x="1065" y="250" width="620" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
     <text x="1089" y="290" font-size="26" fill="#7aa2f7">action.yml · pull_request_target</text>
-    <text x="1089" y="328" font-size="23" fill="#a9b1d6">types: opened, edited, synchronize, reopened, labeled</text>
+    <text x="1089" y="328" font-size="23" fill="#a9b1d6">types: opened, edited, synchronize, reopened, …</text>
     <text x="1089" y="362" font-size="22" fill="#565f89">env: PR_BODY, HEAD_REPO, HEAD_SHA, BODY_IMAGE=first</text>
   </g>
   <line x1="1375" y1="380" x2="1375" y2="425" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
