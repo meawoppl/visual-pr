@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#565f89"/></marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f7768e"/></marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #3 · body-image: require the PR description to open with the summary image</text>
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">The check proved an SVG existed in the tree, one click away from the reviewer, and stopped there;</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">now body-image=first makes the description open with that image, so review starts on the picture.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE: dataflow through action.yml -->
+  <g>
+    <rect x="80" y="250" width="560" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="290" font-size="26" fill="#7aa2f7">action.yml · pull_request_target</text>
+    <text x="104" y="328" font-size="23" fill="#a9b1d6">types: opened, synchronize, reopened, labeled</text>
+    <text x="104" y="362" font-size="22" fill="#565f89">head checked out as data; body never read</text>
+  </g>
+  <line x1="360" y1="380" x2="360" y2="425" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+  <g>
+    <rect x="80" y="430" width="560" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="470" font-size="26" fill="#c0caf5">check_svg.py --style … .0-pr-viz/000003.svg</text>
+    <text x="104" y="508" font-size="23" fill="#a9b1d6">palette, canvas, glyphs, text fit → outcome passed</text>
+    <text x="104" y="542" font-size="22" fill="#565f89">exit 0: the file is there and valid</text>
+  </g>
+  <line x1="360" y1="560" x2="360" y2="640" stroke="#f7768e" stroke-width="1.5" marker-end="url(#arr-red)"/>
+  <line x1="300" y1="655" x2="420" y2="655" stroke="#f7768e" stroke-width="3"/>
+  <text x="360" y="700" font-size="23" fill="#f7768e" text-anchor="middle">description: "## Summary …" — no picture</text>
+  <text x="360" y="732" font-size="22" fill="#565f89" text-anchor="middle">reviewer must open Files changed to find it</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">Review opens on prose; the diagram waits one click away</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">and an edited description never re-ran the check</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="1065" y="250" width="620" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="1089" y="290" font-size="26" fill="#7aa2f7">action.yml · pull_request_target</text>
+    <text x="1089" y="328" font-size="23" fill="#a9b1d6">types: opened, edited, synchronize, reopened, labeled</text>
+    <text x="1089" y="362" font-size="22" fill="#565f89">env: PR_BODY, HEAD_REPO, HEAD_SHA, BODY_IMAGE=first</text>
+  </g>
+  <line x1="1375" y1="380" x2="1375" y2="425" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+  <g>
+    <rect x="1065" y="430" width="620" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="1089" y="470" font-size="26" fill="#c0caf5">check_svg.py passes as before</text>
+    <text x="1089" y="508" font-size="23" fill="#a9b1d6">then the body is piped into the new helper</text>
+    <text x="1089" y="542" font-size="22" fill="#565f89">unchanged validation; one more gate after it</text>
+  </g>
+  <line x1="1375" y1="560" x2="1375" y2="605" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <g>
+    <rect x="1065" y="610" width="620" height="160" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="650" font-size="26" fill="#9ece6a">pr_body_image.py --mode first --svg-path …</text>
+    <text x="1089" y="690" font-size="23" fill="#a9b1d6">image whose URL ends with .0-pr-viz/000003.svg</text>
+    <text x="1089" y="726" font-size="22" fill="#565f89">skips blank lines + HTML comments; link wrapper OK</text>
+    <text x="1089" y="756" font-size="22" fill="#565f89">included: anywhere · not-required: off</text>
+  </g>
+  <g>
+    <rect x="1065" y="810" width="620" height="110" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
+    <text x="1089" y="850" font-size="24" fill="#e0af68">On failure: outcome body-image-missing</text>
+    <text x="1089" y="886" font-size="22" fill="#a9b1d6">recipe prints the SHA-pinned line + gh pr edit call</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Review opens on the picture, in the description itself</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">'edited' re-runs the check, so fixing the text needs no push</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">Any URL ending in the repo path is accepted, so a branch-pinned image passes today and 404s after the branch is deleted; the recipe recommends the SHA.</text>
+</svg>
