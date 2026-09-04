@@ -53,6 +53,7 @@ jobs:
       - name: Valid SVG passes
         uses: ./
         with:
+          body-image: not-required
           pr-number: valid
           svg-dir: tests/fixtures
 
@@ -61,6 +62,7 @@ jobs:
         uses: ./
         continue-on-error: true
         with:
+          body-image: not-required
           pr-number: '999999'
           svg-dir: tests/fixtures
       - name: Off-palette SVG fails with fix instructions
@@ -68,6 +70,7 @@ jobs:
         uses: ./
         continue-on-error: true
         with:
+          body-image: not-required
           pr-number: off-palette
           svg-dir: tests/fixtures
           style: ''
@@ -75,6 +78,7 @@ jobs:
       - name: Custom style file is honored
         uses: ./
         with:
+          body-image: not-required
           pr-number: red-100
           svg-dir: tests/fixtures
           style: tests/fixtures/style-red.json
@@ -82,6 +86,7 @@ jobs:
       - name: Bundled style name is honored (PR 412 -> 000412.svg)
         uses: ./
         with:
+          body-image: not-required
           pr-number: '412'
           svg-dir: examples/nord
           style: nord
@@ -90,6 +95,7 @@ jobs:
         uses: ./
         continue-on-error: true
         with:
+          body-image: not-required
           pr-number: valid
           svg-dir: tests/fixtures
           style: not-a-style

@@ -53,7 +53,8 @@ def test_every_action_output_is_documented():
     assert outputs == ["outcome", "svg"]
     for name in outputs:
         assert re.search(rf"^\| `{name}` \|", README, flags=re.M), f"output '{name}' missing from README"
-    for value in ("passed", "skipped-label", "skipped-small-change", "missing", "invalid", "bad-style"):
+    for value in ("passed", "skipped-label", "skipped-small-change", "missing", "invalid",
+                  "body-image-missing", "bad-style", "bad-input"):
         assert f"outcome {value}" in ACTION, f"action never emits outcome {value}"
         assert f"`{value}`" in README
 
@@ -153,3 +154,21 @@ def test_readme_default_svg_dir_matches_action():
     assert m, "svg-dir default not found"
     assert f"`{m.group(1)}`" in README
     assert (ROOT / m.group(1)).is_dir(), "this repo should dogfood its own svg-dir"
+
+
+def test_quick_start_listens_for_edited_so_body_fixes_rerun():
+    quick = README.split("## Quick start", 1)[1].split("\n## ", 1)[0]
+    assert "types: [opened, edited, synchronize, reopened, labeled, unlabeled]" in quick
+    dogfood = (ROOT / ".github" / "workflows" / "visual-pr.yml").read_text()
+    assert "edited" in dogfood
+
+
+def test_body_image_modes_are_documented_and_match_the_helper():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("pr_body_image", ROOT / "pr_body_image.py")
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    assert mod.MODES == ("first", "included", "not-required")
+    for mode in mod.MODES:
+        assert f"`{mode}`" in README
+        assert mode in ACTION.split("\n  body-image:\n", 1)[1].split("\n  extra-args:\n", 1)[0]
+    assert "first|included|not-required" in ACTION

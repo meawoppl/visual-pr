@@ -90,6 +90,10 @@ def run_action(tmp_path, workspace, fake_gh):
             EXTRA_ARGS=SUPPORT_FLAG,
             MIN_CHANGED_LINES="0",
             RESPECT_LINGUIST="true",
+            BODY_IMAGE="not-required",
+            PR_BODY="",
+            HEAD_REPO="acme/widgets",
+            HEAD_SHA="0123abcd0123abcd0123abcd0123abcd0123abcd",
         )
         env.update({k: str(v) for k, v in over.items()})
         r = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True, cwd=workspace)
@@ -214,3 +218,52 @@ def test_escape_is_off_by_default_and_never_skips_validation(run_action, fake_gh
     # A present-but-broken SVG is validated regardless of PR size.
     rc, out, _ = run_action(PR_NUMBER="off-palette", MIN_CHANGED_LINES="9999")
     assert rc == 1 and "failed validation" in out
+
+
+# ---- the picture in the description ---------------------------------------
+
+RAW_VALID = "https://raw.githubusercontent.com/acme/widgets/0123abcd0123abcd0123abcd0123abcd0123abcd/tests/fixtures/valid.svg"
+
+
+def test_body_image_first_passes_when_description_opens_with_it(run_action):
+    rc, out, _ = run_action(BODY_IMAGE="first", PR_BODY=f"![Visual summary]({RAW_VALID})\n\n## Summary\n...")
+    assert rc == 0, out
+    assert "opens with an image of tests/fixtures/valid.svg" in out
+    assert outcome(run_action) == "passed"
+
+
+def test_body_image_first_fails_when_image_is_not_first(run_action):
+    rc, out, summary = run_action(BODY_IMAGE="first", PR_BODY=f"## Summary\n\n![s]({RAW_VALID})")
+    assert rc == 1
+    assert outcome(run_action) == "body-image-missing"
+    assert "does not open with it" in out
+    assert "The SVG itself is present and valid" in summary
+    assert f"![Visual summary]({RAW_VALID})" in summary, "recipe prints the exact SHA-pinned line"
+    assert "gh pr edit valid --body-file" in summary
+    assert "python3 pr_body_image.py --mode first --svg-path tests/fixtures/valid.svg" in summary
+    assert "curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v1/pr_body_image.py" in summary
+
+
+def test_body_image_included_accepts_anywhere(run_action):
+    rc, out, _ = run_action(BODY_IMAGE="included", PR_BODY=f"## Summary\n\n![s]({RAW_VALID})")
+    assert rc == 0, out
+    rc, out, summary = run_action(BODY_IMAGE="included", PR_BODY="## Summary\n\nno picture")
+    assert rc == 1 and "has no image of tests/fixtures/valid.svg" in out
+    assert "anywhere in it:" in summary
+
+
+def test_body_image_not_required_skips_and_missing_svg_recipe_gets_step_5(run_action):
+    rc, out, _ = run_action(BODY_IMAGE="not-required", PR_BODY="")
+    assert rc == 0 and "PR description" not in out
+    rc, _, summary = run_action(PR_NUMBER="999999", BODY_IMAGE="first")
+    assert rc == 1
+    assert "5. Put the picture in the PR description — the very first line of it:" in summary
+    assert "0123abcd0123abcd0123abcd0123abcd0123abcd/tests/fixtures/999999.svg" in summary
+    rc, _, summary = run_action(PR_NUMBER="999999", BODY_IMAGE="not-required")
+    assert rc == 1 and "5. Put the picture" not in summary
+
+
+def test_body_image_bad_value_is_bad_input(run_action):
+    rc, out, _ = run_action(BODY_IMAGE="sometimes")
+    assert rc == 1 and "body-image must be first, included or not-required" in out
+    assert outcome(run_action) == "bad-input"
