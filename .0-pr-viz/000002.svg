@@ -48,7 +48,7 @@
   <g>
     <rect x="1065" y="820" width="860" height="100" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
     <text x="1089" y="860" font-size="24" fill="#e0af68">Dot-directory: plain ls hides it</text>
-    <text x="1089" y="896" font-size="22" fill="#a9b1d6">ls -a and GitHub's file tree show it; sparse-checkout cone mode is unaffected</text>
+    <text x="1089" y="896" font-size="22" fill="#a9b1d6">ls -a and GitHub's file tree show it; sparse-checkout is unaffected</text>
   </g>
   <g>
     <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
