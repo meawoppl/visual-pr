@@ -25,6 +25,25 @@ jobs:
       - run: python -m pip install pytest
       - run: python -m pytest -q
 
+  lint:
+    name: Lint workflows and the composite action's shell
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: actionlint (workflow files)
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.7
+          ./actionlint -color
+      - name: shellcheck (the composite action's run: block)
+        run: |
+          python3 - <<'EOF'
+          import pathlib
+          text = pathlib.Path("action.yml").read_text().split("      run: |\n", 1)[1]
+          body = "\n".join(l[8:] if l.startswith("        ") else l for l in text.splitlines())
+          pathlib.Path("/tmp/action.bash").write_text("#!/usr/bin/env bash\n" + body + "\n")
+          EOF
+          shellcheck -s bash -S warning /tmp/action.bash
+
   action-self-test:
     name: Composite action end-to-end
     runs-on: ubuntu-latest

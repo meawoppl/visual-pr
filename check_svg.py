@@ -14,8 +14,9 @@ Hard errors (exit 1): unparseable XML, wrong canvas, off-palette color, a
 character outside the style's glyph allowlist (anything the font stack would
 render as a missing-glyph box: emoji, icon-font private-use glyphs, exotic
 symbol blocks, zero-width/format characters).
-Warnings (exit 0): text that looks like it overflows the canvas or crosses
-the panel divider, missing font-size, a numeric file name that isn't
+Warnings (exit 0): text that looks like it overflows the canvas, crosses
+the panel divider, or overruns the box (<g> with one <rect>) it sits in;
+missing font-size; a numeric file name that isn't
 zero-padded to six digits (the action looks for 000412.svg, not 412.svg).
 Overflow estimates use char_factor × font-size per character — eyeball
 anything flagged.
@@ -134,7 +135,7 @@ def _current_login(timeout: float) -> str | None:
     return None
 
 
-def snark_status(fetch=github_get, timeout: float = 1.0, result: dict | None = None) -> dict:
+def snark_status(fetch=None, timeout: float = 1.0, result: dict | None = None) -> dict:
     """Ask GitHub whether the current user starred the repo and follows the
     author. Each value is "yes", "no", or "unknown" (couldn't determine).
 
@@ -151,7 +152,7 @@ def snark_status(fetch=github_get, timeout: float = 1.0, result: dict | None = N
     result = result if result is not None else {}
     result.update({"starred": "unknown", "following": "unknown", "login": ""})
     verdict = {204: "yes", 404: "no"}
-    raw_fetch = fetch
+    raw_fetch = fetch or github_get  # resolved at call time so tests can patch it
 
     def fetch(url, tok, tmo):  # transport errors are just "unknown"
         try:
@@ -159,7 +160,8 @@ def snark_status(fetch=github_get, timeout: float = 1.0, result: dict | None = N
         except Exception:
             return 0, b""
 
-    if token:
+    # Actions installation tokens (ghs_...) are not a user; don't even ask.
+    if token and not token.startswith("ghs_"):
         st, _ = fetch(f"{GITHUB_API}/user/starred/{UPSTREAM_REPO}", token, timeout)
         result["starred"] = verdict.get(st, "unknown")
         if result["starred"] != "unknown":
@@ -329,6 +331,59 @@ def text_content(elem: ET.Element) -> str:
     return "".join(elem.itertext()).strip()
 
 
+BOX_SLACK = 8.0  # px: estimated text may come this close to a box edge before we flag it
+
+
+def font_size(elem: ET.Element, default: float) -> float:
+    size = elem.get("font-size")
+    if not size:
+        return default
+    try:
+        return float(re.sub(r"[a-z%]+$", "", size))
+    except ValueError:
+        return default
+
+
+def check_box_fit(group: ET.Element, style: dict) -> None:
+    """A <g> that draws a <rect> and <text> is a box. Estimate each text's
+    extent the same way check_text does and warn when it runs past the rect —
+    the canvas check can't see this, and it is the commonest visual defect."""
+    rects = [c for c in group if strip_ns(c.tag) == "rect"]
+    texts = [c for c in group if strip_ns(c.tag) == "text"]
+    if len(rects) != 1 or not texts:
+        return
+    r = rects[0]
+    try:
+        bx, by = float(r.get("x", "0")), float(r.get("y", "0"))
+        bw, bh = float(r.get("width")), float(r.get("height"))
+    except (TypeError, ValueError):
+        return
+    right, bottom = bx + bw, by + bh
+    for t in texts:
+        content = text_content(t)
+        if not content:
+            continue
+        try:
+            x = float(t.get("x"))
+            y = float(t.get("y"))
+        except (TypeError, ValueError):
+            continue
+        fs = font_size(t, 23.0)
+        est_w = len(content) * fs * style["char_factor"]
+        anchor = t.get("text-anchor", "start")
+        left = x - est_w if anchor == "end" else x - est_w / 2 if anchor == "middle" else x
+        text_right = left + est_w
+        if text_right > right - BOX_SLACK or left < bx + BOX_SLACK:
+            warnings.append(
+                f"text likely overruns its box (est {left:.0f}..{text_right:.0f} vs box "
+                f"{bx:.0f}..{right:.0f}): '{content[:60]}' — shorten or split the line"
+            )
+        elif y > bottom - BOX_SLACK or y - fs < by:
+            warnings.append(
+                f"text baseline y={y:.0f} sits outside its box (y {by:.0f}..{bottom:.0f}): '{content[:60]}'"
+            )
+
+
 def check_text(elem: ET.Element, style: dict, inherited_size: float) -> None:
     size = elem.get("font-size")
     if size is None and strip_ns(elem.tag) == "text":
@@ -432,6 +487,8 @@ def main() -> int:
             check_text(elem, style, inherited_size=23.0)
         if tag in ("text", "textPath") and ranges:
             check_glyphs(elem, ranges)
+        if tag == "g":
+            check_box_fit(elem, style)
 
     for w in warnings:
         print(f"warning: {w}")

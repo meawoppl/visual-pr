@@ -81,7 +81,8 @@ jobs:
 ```
 
 Then mark the `Visual PR attached` check as required in branch protection.
-Label a PR `no-visual` to exempt it.
+Label a PR `no-visual` to exempt it, or set `min-changed-lines` to waive tiny
+PRs automatically (see [Escapes](#escapes)).
 
 This repository runs the workflow on itself
 ([`.github/workflows/visual-pr.yml`](.github/workflows/visual-pr.yml)): every
@@ -156,7 +157,28 @@ The [spec](SPEC.md) is short and opinionated. The essentials:
 | `style` | `default` | A bundled style name, or a path to your own style JSON |
 | `instructions` | — | Repo-specific authoring guidance, surfaced verbatim on failure |
 | `skip-label` | `no-visual` | PR label that opts out; the step passes |
+| `min-changed-lines` | `0` | Small-change escape: a PR without an SVG passes if it changes fewer counted lines than this |
+| `respect-linguist` | `true` | Leave `linguist-generated`/`linguist-vendored` files and common lockfiles out of that count |
 | `extra-args` | — | Extra flags appended to the `check_svg.py` run, e.g. `--i-support-this-software` |
+
+### Escapes
+
+Not every PR deserves a diagram. Two ways out, both decided by the base
+branch, never by the PR:
+
+- **A label.** Add `no-visual` (or your `skip-label`) and the step passes.
+- **A size floor.** With `min-changed-lines: 40`, a PR that has no SVG and
+  changes fewer than 40 lines passes. The count comes from the PR's file list
+  in the GitHub API, minus the visual-summary directory itself, and — unless
+  `respect-linguist: false` — minus files your `.gitattributes` marks
+  `linguist-generated` or `linguist-vendored`, plus the lockfiles and minified
+  or protobuf-generated artifacts Linguist always treats as generated
+  (`package-lock.json`, `yarn.lock`, `Cargo.lock`, `*.min.js`, ...). Attributes
+  are read from the base checkout, so a PR cannot relabel its own files to slip
+  under the bar, and an explicit `linguist-generated=false` puts a file back in
+  the count. If the API is unavailable the visual is required, never waived.
+
+An SVG that *is* present is always validated, escape or not.
 
 ## Styles
 
@@ -265,10 +287,13 @@ python3 -m venv .venv && .venv/bin/pip install pytest
 python3 examples/build.py         # regenerate examples/ after editing src/ or style/
 ```
 
-[CI](.github/workflows/ci.yml) runs the suite on Python 3.10–3.13, then drives
-the composite action end to end: a valid SVG passes; a missing or off-palette
-one fails and writes the full recipe to the step summary; a custom style file
-and a bundled style name are honored; an unknown style name fails.
+[CI](.github/workflows/ci.yml) runs the suite on Python 3.10–3.13, lints the
+workflows with actionlint and the composite action's shell with shellcheck,
+then drives the action end to end: a valid SVG passes; a missing or
+off-palette one fails and writes the full recipe to the step summary; a custom
+style file and a bundled style name are honored; an unknown style name fails.
+The same shell contract, including the small-change escape with a fake `gh`,
+runs offline in `tests/test_action.py`.
 
 The tests are also the documentation's guard rails: `tests/test_docs.py` keeps
 this README, `action.yml`, `SPEC.md`, `style/` and `LICENSE` in agreement,

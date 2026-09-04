@@ -39,6 +39,21 @@ inputs:
   skip-label:
     description: 'PR label that opts out of the requirement'
     default: 'no-visual'
+  min-changed-lines:
+    description: >-
+      Small-change escape: when the PR is missing its SVG but changes fewer
+      than this many lines (additions + deletions over the files it touches,
+      per the GitHub API), the check passes instead of failing. 0 = the
+      visual is always required. An SVG that is present is always validated.
+    default: '0'
+  respect-linguist:
+    description: >-
+      When counting changed lines for min-changed-lines, leave out files the
+      base branch's .gitattributes marks linguist-generated or
+      linguist-vendored, plus the lockfiles and build artifacts Linguist
+      itself treats as generated (package-lock.json, yarn.lock, Cargo.lock,
+      *.min.js, ...). 'false' counts every line of every file.
+    default: 'true'
   extra-args:
     description: >-
       Extra command-line arguments appended to the check_svg.py invocation,
@@ -59,6 +74,8 @@ runs:
         INSTRUCTIONS: ${{ inputs.instructions }}
         SKIP_LABEL: ${{ inputs.skip-label }}
         EXTRA_ARGS: ${{ inputs.extra-args }}
+        MIN_CHANGED_LINES: ${{ inputs.min-changed-lines }}
+        RESPECT_LINGUIST: ${{ inputs.respect-linguist }}
         LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         # For the time-boxed Starstruck nudge: API budget + who to look up.
         GH_TOKEN: ${{ github.token }}
@@ -90,7 +107,9 @@ runs:
           elif [ -f "${ACTION_PATH}/style/${STYLE}.json" ]; then
             STYLE_FILE="${ACTION_PATH}/style/${STYLE}.json"; BUNDLED_STYLE="$STYLE"
           else
-            echo "::error::style '${STYLE}' is neither a file nor a bundled style ($(ls "${ACTION_PATH}/style/"*.json | xargs -n1 basename | sed 's/\.json$//' | paste -sd, -))"
+            BUNDLED=""
+            for f in "${ACTION_PATH}/style/"*.json; do n="$(basename "$f" .json)"; BUNDLED="${BUNDLED:+${BUNDLED},}${n}"; done
+            echo "::error::style '${STYLE}' is neither a file nor a bundled style (${BUNDLED})"
             exit 1
           fi
         fi
@@ -168,6 +187,26 @@ runs:
             cat "${ACTION_PATH}/SPEC.md"
           } | tee -a "$GITHUB_STEP_SUMMARY"
         }
+
+        if [ ! -f "$FILE" ] && [ "${MIN_CHANGED_LINES:-0}" -gt 0 ] 2>/dev/null; then
+          # Small-change escape. The count comes from the PR's file list via the
+          # API (the head is only sparsely checked out); linguist-* attributes are
+          # resolved against the BASE checkout in $GITHUB_WORKSPACE, so the PR
+          # cannot relabel its own files to slip under the bar.
+          COUNT_ARGS=(--svg-dir "$SVG_DIR" --repo-root "${GITHUB_WORKSPACE:-.}")
+          [ "$RESPECT_LINGUIST" = "false" ] && COUNT_ARGS+=(--count-everything)
+          if [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] \
+             && FILES_JSON="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[]' 2>/dev/null)" \
+             && COUNT="$(printf '%s\n' "$FILES_JSON" | python3 "${ACTION_PATH}/changed_lines.py" "${COUNT_ARGS[@]}")"; then
+            if [ "$COUNT" -lt "$MIN_CHANGED_LINES" ]; then
+              echo "PR changes ${COUNT} counted line(s), under min-changed-lines=${MIN_CHANGED_LINES} — visual summary not required."
+              exit 0
+            fi
+            echo "PR changes ${COUNT} counted line(s) (min-changed-lines=${MIN_CHANGED_LINES}); visual summary required."
+          else
+            echo "::warning::Could not count changed lines for PR ${PR_NUMBER}; requiring the visual summary."
+          fi
+        fi
 
         if [ ! -f "$FILE" ]; then
           emit_fix_instructions "missing ${SVG_DIR}/${SVG_NAME}"

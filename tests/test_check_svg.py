@@ -317,3 +317,62 @@ def test_template_and_examples_use_only_allowed_glyphs(run_check):
     for f in [ROOT / "template.svg", *sorted((ROOT / "examples" / "src").glob("*.svg"))]:
         r = run_check(f)
         assert r.returncode == 0, f"{f.name}: {r.stderr}"
+
+
+# --------------------------------------------------------------------------
+# check_box_fit — text must stay inside the <g><rect/><text/></g> it belongs to
+# --------------------------------------------------------------------------
+
+
+def _box(check_svg, inner: str):
+    style = check_svg.load_style(None)
+    check_svg.check_box_fit(ET.fromstring(f"<g>{inner}</g>"), style)
+    return check_svg.warnings
+
+
+RECT = '<rect x="80" y="250" width="480" height="150"/>'
+
+
+def test_text_that_fits_its_box_is_silent(check_svg):
+    # 432px interior at 23px*0.5 -> 37 chars fits comfortably.
+    assert _box(check_svg, RECT + f'<text x="104" y="290" font-size="23">{"x" * 30}</text>') == []
+
+
+def test_text_running_past_the_right_edge_warns(check_svg):
+    w = _box(check_svg, RECT + f'<text x="104" y="290" font-size="23">{"x" * 45}</text>')
+    assert len(w) == 1 and "overruns its box" in w[0] and "shorten or split" in w[0]
+
+
+def test_text_anchor_end_and_middle_are_measured_from_the_anchor(check_svg):
+    assert _box(check_svg, RECT + f'<text x="540" y="290" font-size="23" text-anchor="end">{"x" * 30}</text>') == []
+    assert _box(check_svg, RECT + f'<text x="320" y="290" font-size="23" text-anchor="middle">{"x" * 30}</text>') == []
+    w = _box(check_svg, RECT + f'<text x="320" y="290" font-size="23" text-anchor="middle">{"x" * 45}</text>')
+    assert len(w) == 1
+
+
+def test_text_below_the_box_warns(check_svg):
+    w = _box(check_svg, RECT + '<text x="104" y="420" font-size="23">late</text>')
+    assert len(w) == 1 and "outside its box" in w[0]
+
+
+def test_groups_without_exactly_one_rect_are_not_boxes(check_svg):
+    long = f'<text x="104" y="290" font-size="23">{"x" * 80}</text>'
+    assert _box(check_svg, long) == []
+    assert _box(check_svg, RECT + RECT + long) == []
+
+
+def test_box_fit_runs_from_main(run_check, tmp_path):
+    f = tmp_path / "x.svg"
+    f.write_text(svg(
+        '<g><rect x="80" y="250" width="480" height="150" fill="#1e202e" stroke="#3d4666"/>'
+        f'<text x="104" y="290" font-size="23" fill="#a9b1d6">{"x" * 45}</text></g>'
+    ))
+    r = run_check(f)
+    assert r.returncode == 0
+    assert "warning: text likely overruns its box" in r.stdout
+
+
+def test_template_and_examples_have_no_box_overruns(run_check):
+    for f in [ROOT / "template.svg", *sorted((ROOT / "examples" / "src").glob("*.svg"))]:
+        r = run_check(f)
+        assert "0 warning(s)" in r.stdout, f"{f.name}: {r.stdout}"

@@ -74,12 +74,13 @@ def test_user_token_not_starred_not_following(check_svg, env):
     assert res["starred"] == "no" and res["following"] == "no"
 
 
-def test_installation_token_falls_back_to_public_lookup_by_actor(check_svg, env):
+def test_installation_token_never_tries_the_user_endpoints(check_svg, env):
+    """GITHUB_TOKEN in Actions is a ghs_ installation token, not a user: skip
+    /user/* outright rather than depend on GitHub answering 403."""
     env.setenv("GITHUB_TOKEN", "ghs_actions")
     env.setenv("GITHUB_ACTOR", "octocat")
     f = fake_fetch(
         {
-            "/user/starred/": (403, None),
             "/users/octocat/following/meawoppl": (204, None),
             "/users/octocat/starred": (200, [{"full_name": "other/repo"}, {"full_name": "MeaWoppl/Visual-PR"}]),
         }
@@ -88,6 +89,21 @@ def test_installation_token_falls_back_to_public_lookup_by_actor(check_svg, env)
     assert res == {"starred": "yes", "following": "yes", "login": "octocat"}
     starred_calls = [c for c in f.calls if "/users/octocat/starred" in c]
     assert len(starred_calls) == 1 and "sort=created&direction=desc" in starred_calls[0]
+    assert not any("/user/starred" in c or "/user/following" in c for c in f.calls)
+
+
+def test_non_user_token_that_is_rejected_falls_back(check_svg, env):
+    env.setenv("GITHUB_TOKEN", "github_pat_limited")
+    env.setenv("GITHUB_ACTOR", "octocat")
+    f = fake_fetch(
+        {
+            "/user/starred/": (403, None),
+            "/users/octocat/following/meawoppl": (404, None),
+            "/users/octocat/starred": (200, []),
+        }
+    )
+    res = check_svg.snark_status(fetch=f, timeout=1)
+    assert res == {"starred": "no", "following": "no", "login": "octocat"}
 
 
 def test_public_lookup_user_has_not_starred(check_svg, env):
