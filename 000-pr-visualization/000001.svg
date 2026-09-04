@@ -65,7 +65,7 @@
   </g>
   <g>
     <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
-    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Each README claim has a test that fails once it stops being true</text>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Each README claim has a test that fails when it drifts</text>
     <text x="1089" y="1046" font-size="23" fill="#9ece6a">test_docs.py binds README, action.yml, SPEC.md, style/, LICENSE</text>
   </g>
 
