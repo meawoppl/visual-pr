@@ -3,7 +3,7 @@
 escape in action.yml.
 
     gh api --paginate "repos/OWNER/REPO/pulls/N/files" --jq '.[]' \\
-      | python3 changed_lines.py --svg-dir 000-pr-visualization --repo-root .
+      | python3 changed_lines.py --svg-dir .0-pr-viz --repo-root .
 
 Reads the PR's file list (one JSON object per line, or a JSON array) on
 stdin and prints the counted total on stdout; a per-file report goes to
@@ -125,7 +125,7 @@ def classify(path: str, attrs: dict[str, str], svg_dir: str, count_everything: b
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--svg-dir", default="000-pr-visualization", help="directory of the visual summaries; never counted")
+    ap.add_argument("--svg-dir", default=".0-pr-viz", help="directory of the visual summaries; never counted")
     ap.add_argument("--repo-root", default=".", help="checkout whose .gitattributes decide linguist-* (the BASE branch)")
     ap.add_argument("--count-everything", action="store_true", help="ignore linguist attributes and built-in generated rules")
     args = ap.parse_args()

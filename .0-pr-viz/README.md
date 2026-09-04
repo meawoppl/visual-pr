@@ -8,5 +8,5 @@ that use it — here it is enforced on visual-pr itself by
 How to author one: [SPEC.md](../SPEC.md). How to check it before pushing:
 
 ```bash
-python3 check_svg.py 000-pr-visualization/000412.svg
+python3 check_svg.py .0-pr-viz/000412.svg
 ```

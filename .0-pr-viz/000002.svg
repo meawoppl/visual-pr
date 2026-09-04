@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #2 · Rename the summary directory to .0-pr-viz so it sorts ahead of .github</text>
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">GitHub lists changed files in path-byte order and '.' sorts before '0', so 000-pr-visualization/</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">opened below .github/ and .gitignore; now .0-pr-viz/ sorts ahead of every dotfile and letter.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE: the Files changed list of PR #1, as the API returned it -->
+  <text x="80" y="270" font-size="24" fill="#c0caf5">"Files changed" for PR #1 (pulls/1/files, API order)</text>
+  <g>
+    <rect x="80" y="295" width="860" height="330" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="340" font-size="23" fill="#a9b1d6">.github/workflows/ci.yml</text>
+    <text x="104" y="380" font-size="23" fill="#a9b1d6">.github/workflows/visual-pr.yml</text>
+    <text x="104" y="420" font-size="23" fill="#a9b1d6">.gitignore</text>
+    <text x="104" y="460" font-size="23" fill="#f7768e">000-pr-visualization/000001.svg</text>
+    <text x="104" y="500" font-size="23" fill="#a9b1d6">000-pr-visualization/README.md</text>
+    <text x="104" y="540" font-size="23" fill="#a9b1d6">LICENSE</text>
+    <text x="104" y="580" font-size="23" fill="#565f89">README.md …</text>
+  </g>
+  <line x1="450" y1="690" x2="570" y2="690" stroke="#f7768e" stroke-width="3"/>
+  <text x="510" y="735" font-size="23" fill="#f7768e" text-anchor="middle">'.' is 0x2E, '0' is 0x30: dotfiles win the sort</text>
+  <text x="510" y="767" font-size="22" fill="#565f89" text-anchor="middle">README claimed the 000- prefix "sorts first"; it did not</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">Review opened on a workflow file, not the picture</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">whenever a PR also touched .github/ or any dotfile</text>
+  </g>
+
+  <!-- AFTER -->
+  <text x="1065" y="270" font-size="24" fill="#c0caf5">Same PR with svg-dir = .0-pr-viz (action.yml default)</text>
+  <g>
+    <rect x="1065" y="295" width="860" height="330" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="340" font-size="23" fill="#9ece6a">.0-pr-viz/000001.svg</text>
+    <text x="1089" y="380" font-size="23" fill="#a9b1d6">.0-pr-viz/README.md</text>
+    <text x="1089" y="420" font-size="23" fill="#a9b1d6">.github/workflows/ci.yml</text>
+    <text x="1089" y="460" font-size="23" fill="#a9b1d6">.github/workflows/visual-pr.yml</text>
+    <text x="1089" y="500" font-size="23" fill="#a9b1d6">.gitignore</text>
+    <text x="1089" y="540" font-size="23" fill="#a9b1d6">LICENSE</text>
+    <text x="1089" y="580" font-size="23" fill="#565f89">README.md …</text>
+  </g>
+  <line x1="1435" y1="690" x2="1555" y2="690" stroke="#9ece6a" stroke-width="3"/>
+  <text x="1495" y="735" font-size="23" fill="#9ece6a" text-anchor="middle">'.0' beats '.g', every other dotfile and every letter</text>
+  <text x="1495" y="767" font-size="22" fill="#565f89" text-anchor="middle">moved: action.yml default, visual-pr.yml sparse-checkout, changed_lines.py, docs</text>
+  <g>
+    <rect x="1065" y="820" width="860" height="100" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
+    <text x="1089" y="860" font-size="24" fill="#e0af68">Dot-directory: plain ls hides it</text>
+    <text x="1089" y="896" font-size="22" fill="#a9b1d6">ls -a and GitHub's file tree show it; sparse-checkout is unaffected</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Review opens on the picture, always</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">first entry in Files changed regardless of what else the PR touches</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">Consumers already on 000-pr-visualization must set svg-dir explicitly or move their files; this PR's own check on main still looks in the old dir.</text>
+</svg>

@@ -19,5 +19,5 @@ validates every output with `check_svg.py --style <name>`.
 | **#437** `000437.svg` Stream CSV exports instead of buffering them in memory | [![default](default/000437.svg)](default/000437.svg) | [![dracula](dracula/000437.svg)](dracula/000437.svg) | [![nord](nord/000437.svg)](nord/000437.svg) | [![gruvbox-dark](gruvbox-dark/000437.svg)](gruvbox-dark/000437.svg) | [![github-light](github-light/000437.svg)](github-light/000437.svg) | [![solarized-light](solarized-light/000437.svg)](solarized-light/000437.svg) |
 
 Choose one with the action's `style` input (`style: nord`) or locally with
-`python3 check_svg.py --style nord 000-pr-visualization/000412.svg`. Own palette?
+`python3 check_svg.py --style nord .0-pr-viz/000412.svg`. Own palette?
 Point `style` at a JSON file instead — see [`../style/README.md`](../style/README.md).
