@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <defs>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/></marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f7768e"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #1 · Tests, CI, bundled styles, example matrix, Starstruck license, glyph and box-fit checks</text>
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">check_svg.py and action.yml shipped untested, with one palette and nothing enforcing the check on this repo;</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">now 173 tests, six styles, glyph/box-fit checks and a self-applied workflow make every claim in the README checked.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE -->
+  <g>
+    <rect x="80" y="250" width="860" height="110" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="290" font-size="26" fill="#7aa2f7">check_svg.py · action.yml · style/default.json</text>
+    <text x="104" y="330" font-size="23" fill="#a9b1d6">ci.yml: three printf-built SVGs piped through the validator</text>
+  </g>
+  <text x="104" y="430" font-size="26" font-weight="700" fill="#f7768e">–</text>
+  <text x="144" y="430" font-size="23" fill="#a9b1d6">no tests: check_text budgets, exit codes, action shell unverified</text>
+  <text x="104" y="490" font-size="26" font-weight="700" fill="#f7768e">–</text>
+  <text x="144" y="490" font-size="23" fill="#a9b1d6">one palette; a re-skin meant editing every fill/stroke by hand</text>
+  <text x="104" y="550" font-size="26" font-weight="700" fill="#f7768e">–</text>
+  <text x="144" y="550" font-size="23" fill="#a9b1d6">emoji or icon glyphs passed and rendered as boxes in review</text>
+  <text x="104" y="610" font-size="26" font-weight="700" fill="#f7768e">–</text>
+  <text x="144" y="610" font-size="23" fill="#a9b1d6">text overrunning its rect was invisible to the canvas check</text>
+  <text x="104" y="670" font-size="26" font-weight="700" fill="#f7768e">–</text>
+  <text x="144" y="670" font-size="23" fill="#a9b1d6">every PR needed an SVG, even a one-line lockfile bump</text>
+  <text x="104" y="730" font-size="26" font-weight="700" fill="#f7768e">–</text>
+  <text x="144" y="730" font-size="23" fill="#f7768e">this repo never ran its own check on its own PRs</text>
+  <line x1="450" y1="800" x2="570" y2="800" stroke="#f7768e" stroke-width="3"/>
+  <text x="510" y="845" font-size="23" fill="#f7768e" text-anchor="middle">recipe told agents to curl a v1 tag that did not exist</text>
+  <text x="510" y="877" font-size="22" fill="#565f89" text-anchor="middle">README described behavior nothing verified</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">An untested checker enforcing rules on other repos</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">regressions in check_svg.py or action.yml would ship silently</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="1065" y="250" width="860" height="110" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="290" font-size="26" fill="#7aa2f7">tests/ (173) · examples/build.py · changed_lines.py</text>
+    <text x="1089" y="330" font-size="23" fill="#a9b1d6">ci.yml: pytest 3.10–3.13, actionlint + shellcheck, action end to end</text>
+  </g>
+  <text x="1089" y="430" font-size="26" font-weight="700" fill="#9ece6a">✓</text>
+  <text x="1129" y="430" font-size="23" fill="#a9b1d6">test_action.py drives action.yml offline with a fake gh</text>
+  <text x="1089" y="490" font-size="26" font-weight="700" fill="#9ece6a">✓</text>
+  <text x="1129" y="490" font-size="23" fill="#a9b1d6">six style/*.json, one 14-slot order; --style nord re-skins by index</text>
+  <text x="1089" y="550" font-size="26" font-weight="700" fill="#9ece6a">✓</text>
+  <text x="1129" y="550" font-size="23" fill="#a9b1d6">check_glyphs(): chars outside style["glyphs"] are hard errors</text>
+  <text x="1089" y="610" font-size="26" font-weight="700" fill="#9ece6a">✓</text>
+  <text x="1129" y="610" font-size="23" fill="#a9b1d6">check_box_fit(): text past its rect edge warns</text>
+  <text x="1089" y="670" font-size="26" font-weight="700" fill="#9ece6a">✓</text>
+  <text x="1129" y="670" font-size="23" fill="#a9b1d6">min-changed-lines skips tiny PRs; linguist-generated files don't count</text>
+  <text x="1089" y="730" font-size="26" font-weight="700" fill="#9ece6a">✓</text>
+  <text x="1129" y="730" font-size="23" fill="#9ece6a">visual-pr.yml runs the action on this repo — this file is its proof</text>
+  <g>
+    <rect x="1065" y="790" width="860" height="110" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
+    <text x="1089" y="830" font-size="24" fill="#e0af68">Starstruck: Apache-2.0 plus a request, not a condition</text>
+    <text x="1089" y="866" font-size="22" fill="#a9b1d6">SnarkCheck runs in a 2 s daemon thread; never changes the exit code</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Every README claim has a test that fails when it stops being true</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">test_docs.py binds README, action.yml, SPEC.md, style/ and LICENSE together</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">The v1 tag the recipe curls still does not exist until this merges; and the glyph allowlist is a curated guess at what fonts render, not a font-file lookup.</text>
+</svg>
