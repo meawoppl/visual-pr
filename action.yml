@@ -1,0 +1,121 @@
+name: 'Visual PR'
+description: >-
+  Require and validate a committed visual summary SVG on every pull request.
+  On failure, emits complete agent-facing instructions: the authoring spec,
+  the effective style, any custom instructions, and the exact command to
+  verify the artifact locally before pushing.
+branding:
+  icon: 'image'
+  color: 'purple'
+
+inputs:
+  pr-number:
+    description: 'Pull request number (defaults to the triggering PR)'
+    default: '${{ github.event.pull_request.number }}'
+  svg-dir:
+    description: 'Directory (in the PR head) holding <pr-number>.svg'
+    default: '000-pr-visualization'
+  head-path:
+    description: >-
+      Where the workflow checked the PR head out (data only — this action
+      never executes anything from it). "." when the head is the workspace
+      root.
+    default: '.'
+  style:
+    description: >-
+      Path to a style JSON in the consuming repo (checked out from the BASE
+      branch) overriding the bundled default — canvas, palette, text-fit
+      heuristics. Empty = bundled Tokyo-Night default.
+    default: ''
+  instructions:
+    description: >-
+      Custom authoring instructions for this repo, surfaced verbatim in the
+      failure output so the generating agent sees them.
+    default: ''
+  skip-label:
+    description: 'PR label that opts out of the requirement'
+    default: 'no-visual'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Require and validate the PR visual summary
+      shell: bash
+      env:
+        PR_NUMBER: ${{ inputs.pr-number }}
+        SVG_DIR: ${{ inputs.svg-dir }}
+        HEAD_PATH: ${{ inputs.head-path }}
+        STYLE: ${{ inputs.style }}
+        INSTRUCTIONS: ${{ inputs.instructions }}
+        SKIP_LABEL: ${{ inputs.skip-label }}
+        LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        ACTION_PATH: ${{ github.action_path }}
+        ACTION_REPO: ${{ github.action_repository }}
+        ACTION_REF: ${{ github.action_ref }}
+      run: |
+        set -u
+        if printf '%s' "$LABELS_JSON" | grep -q "\"${SKIP_LABEL}\""; then
+          echo "PR is labeled '${SKIP_LABEL}' — visual summary not required."
+          exit 0
+        fi
+
+        FILE="${HEAD_PATH}/${SVG_DIR}/${PR_NUMBER}.svg"
+        STYLE_ARGS=()
+        [ -n "$STYLE" ] && STYLE_ARGS=(--style "$STYLE")
+
+        emit_fix_instructions() {
+          local reason="$1"
+          # One complete, self-sufficient recipe for the generating agent:
+          # the spec, the effective style, repo-specific instructions, and the
+          # exact local check that must pass — printed to the log (agents read
+          # failed-job logs) and mirrored into the step summary.
+          {
+            echo "=================================================================="
+            echo "VISUAL PR CHECK FAILED: ${reason}"
+            echo "=================================================================="
+            echo
+            echo "HOW TO FIX (instructions for the agent preparing this PR):"
+            echo
+            echo "1. Author the visual summary per the spec below and commit it on"
+            echo "   this PR's branch at: ${SVG_DIR}/${PR_NUMBER}.svg"
+            echo
+            echo "2. Verify it locally with EXACTLY the check this job runs:"
+            echo "     curl -fsSLO https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v1}/check_svg.py"
+            echo "     mkdir -p style && curl -fsSL -o style/default.json https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v1}/style/default.json"
+            if [ -n "$STYLE" ]; then
+              echo "     python3 check_svg.py --style ${STYLE} ${SVG_DIR}/${PR_NUMBER}.svg"
+            else
+              echo "     python3 check_svg.py ${SVG_DIR}/${PR_NUMBER}.svg"
+            fi
+            echo "   It must exit 0 with no ERROR lines before you push."
+            echo
+            if [ -n "$INSTRUCTIONS" ]; then
+              echo "REPO-SPECIFIC INSTRUCTIONS:"
+              echo "$INSTRUCTIONS"
+              echo
+            fi
+            echo "EFFECTIVE STYLE (canvas, palette, text-fit heuristics):"
+            if [ -n "$STYLE" ] && [ -f "$STYLE" ]; then
+              cat "$STYLE"
+            else
+              cat "${ACTION_PATH}/style/default.json"
+            fi
+            echo
+            echo "AUTHORING SPEC:"
+            cat "${ACTION_PATH}/SPEC.md"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+        }
+
+        if [ ! -f "$FILE" ]; then
+          emit_fix_instructions "missing ${SVG_DIR}/${PR_NUMBER}.svg"
+          echo "::error::Missing ${SVG_DIR}/${PR_NUMBER}.svg — see the job log/summary for the full authoring spec and the local check to run."
+          exit 1
+        fi
+
+        if ! python3 "${ACTION_PATH}/check_svg.py" "${STYLE_ARGS[@]}" "$FILE"; then
+          emit_fix_instructions "${SVG_DIR}/${PR_NUMBER}.svg failed validation (see ERROR lines above)"
+          echo "::error::${SVG_DIR}/${PR_NUMBER}.svg failed validation — see the job log/summary for the spec and the local check to run."
+          exit 1
+        fi
+
+        echo "Visual summary present and valid: ${SVG_DIR}/${PR_NUMBER}.svg"

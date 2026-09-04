@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  self-test:
+    name: Validator self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bundled template validates against the default style
+        run: python3 check_svg.py template.svg
+      - name: Off-style input fails
+        run: |
+          printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"><rect fill="#ff0000"/></svg>' > /tmp/bad.svg
+          if python3 check_svg.py /tmp/bad.svg; then echo "should have failed"; exit 1; fi
+      - name: Style override changes the contract
+        run: |
+          printf '{"palette": ["#ff0000"], "canvas": [100, 100]}' > /tmp/style.json
+          printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#ff0000"/></svg>' > /tmp/red.svg
+          python3 check_svg.py --style /tmp/style.json /tmp/red.svg
