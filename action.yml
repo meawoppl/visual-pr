@@ -10,10 +10,12 @@ branding:
 
 inputs:
   pr-number:
-    description: 'Pull request number (defaults to the triggering PR)'
+    description: >-
+      Pull request number (defaults to the triggering PR). Zero-padded to six
+      digits to form the file name: PR 412 must commit <svg-dir>/000412.svg.
     default: '${{ github.event.pull_request.number }}'
   svg-dir:
-    description: 'Directory (in the PR head) holding <pr-number>.svg'
+    description: 'Directory (in the PR head) holding the six-digit <pr-number>.svg files'
     default: '000-pr-visualization'
   head-path:
     description: >-
@@ -23,9 +25,11 @@ inputs:
     default: '.'
   style:
     description: >-
-      Path to a style JSON in the consuming repo (checked out from the BASE
-      branch) overriding the bundled default — canvas, palette, text-fit
-      heuristics. Empty = bundled Tokyo-Night default.
+      Either the name of a bundled style (default, dracula, nord,
+      gruvbox-dark, github-light, solarized-light) or a path to a style JSON
+      in the consuming repo (checked out from the BASE branch) overriding the
+      bundled default — canvas, palette, text-fit heuristics. Empty = the
+      bundled Tokyo-Night default.
     default: ''
   instructions:
     description: >-
@@ -35,11 +39,43 @@ inputs:
   skip-label:
     description: 'PR label that opts out of the requirement'
     default: 'no-visual'
+  min-changed-lines:
+    description: >-
+      Small-change escape: when the PR is missing its SVG but changes fewer
+      than this many lines (additions + deletions over the files it touches,
+      per the GitHub API), the check passes instead of failing. 0 = the
+      visual is always required. An SVG that is present is always validated.
+    default: '0'
+  respect-linguist:
+    description: >-
+      When counting changed lines for min-changed-lines, leave out files the
+      base branch's .gitattributes marks linguist-generated or
+      linguist-vendored, plus the lockfiles and build artifacts Linguist
+      itself treats as generated (package-lock.json, yarn.lock, Cargo.lock,
+      *.min.js, ...). 'false' counts every line of every file.
+    default: 'true'
+  extra-args:
+    description: >-
+      Extra command-line arguments appended to the check_svg.py invocation,
+      e.g. '--i-support-this-software' to silence the Starstruck nudge
+      (see LICENSE).
+    default: ''
+
+outputs:
+  outcome:
+    description: >-
+      What happened: passed | skipped-label | skipped-small-change | missing |
+      invalid | bad-style. Useful for follow-up steps (comments, metrics).
+    value: ${{ steps.check.outputs.outcome }}
+  svg:
+    description: 'Path, under head-path, of the SVG the check looked for'
+    value: ${{ steps.check.outputs.svg }}
 
 runs:
   using: 'composite'
   steps:
     - name: Require and validate the PR visual summary
+      id: check
       shell: bash
       env:
         PR_NUMBER: ${{ inputs.pr-number }}
@@ -48,74 +84,159 @@ runs:
         STYLE: ${{ inputs.style }}
         INSTRUCTIONS: ${{ inputs.instructions }}
         SKIP_LABEL: ${{ inputs.skip-label }}
+        EXTRA_ARGS: ${{ inputs.extra-args }}
+        MIN_CHANGED_LINES: ${{ inputs.min-changed-lines }}
+        RESPECT_LINGUIST: ${{ inputs.respect-linguist }}
         LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        # For the time-boxed Starstruck nudge: API budget + who to look up.
+        GH_TOKEN: ${{ github.token }}
+        VISUAL_PR_GITHUB_USER: ${{ github.event.pull_request.user.login }}
         ACTION_PATH: ${{ github.action_path }}
         ACTION_REPO: ${{ github.action_repository }}
         ACTION_REF: ${{ github.action_ref }}
       run: |
         set -u
+        outcome() { echo "outcome=$1" >> "${GITHUB_OUTPUT:-/dev/null}"; }
         if printf '%s' "$LABELS_JSON" | grep -q "\"${SKIP_LABEL}\""; then
           echo "PR is labeled '${SKIP_LABEL}' — visual summary not required."
+          outcome skipped-label
           exit 0
         fi
 
-        FILE="${HEAD_PATH}/${SVG_DIR}/${PR_NUMBER}.svg"
+        # Six-digit, zero-padded file names sort correctly and line up in the
+        # review list: PR 412 -> 000412.svg. Non-numeric values (test fixtures)
+        # pass through verbatim.
+        if [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+          SVG_NAME="$(printf '%06d' "$PR_NUMBER").svg"
+        else
+          SVG_NAME="${PR_NUMBER}.svg"
+        fi
+        FILE="${HEAD_PATH}/${SVG_DIR}/${SVG_NAME}"
+        echo "svg=${SVG_DIR}/${SVG_NAME}" >> "${GITHUB_OUTPUT:-/dev/null}"
+        # `style` is either a path in the consuming repo or a bundled name.
+        STYLE_FILE=""; BUNDLED_STYLE=""
+        if [ -n "$STYLE" ]; then
+          if [ -f "$STYLE" ]; then
+            STYLE_FILE="$STYLE"
+          elif [ -f "${ACTION_PATH}/style/${STYLE}.json" ]; then
+            STYLE_FILE="${ACTION_PATH}/style/${STYLE}.json"; BUNDLED_STYLE="$STYLE"
+          else
+            BUNDLED=""
+            for f in "${ACTION_PATH}/style/"*.json; do n="$(basename "$f" .json)"; BUNDLED="${BUNDLED:+${BUNDLED},}${n}"; done
+            echo "::error::style '${STYLE}' is neither a file nor a bundled style (${BUNDLED})"
+            outcome bad-style
+            exit 1
+          fi
+        fi
         STYLE_ARGS=()
-        [ -n "$STYLE" ] && STYLE_ARGS=(--style "$STYLE")
+        [ -n "$STYLE_FILE" ] && STYLE_ARGS=(--style "$STYLE_FILE")
+        read -r -a EXTRA <<< "$EXTRA_ARGS"
 
         emit_fix_instructions() {
           local reason="$1"
+          local base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v1}"
+          # The local command mirrors this job's arguments, minus the Starstruck
+          # opt-out: an agent checking its work locally should see that request.
+          local extra="" a
+          for a in "${EXTRA[@]}"; do
+            [ "$a" = "--i-support-this-software" ] && continue
+            [ -n "$a" ] && extra+=" $a"
+          done
+          local style_arg=""
+          if [ -n "$BUNDLED_STYLE" ]; then
+            style_arg=" --style ${BUNDLED_STYLE}"
+          elif [ -n "$STYLE_FILE" ]; then
+            style_arg=" --style ${STYLE}"
+          fi
           # One complete, self-sufficient recipe for the generating agent:
-          # the spec, the effective style, repo-specific instructions, and the
-          # exact local check that must pass — printed to the log (agents read
+          # what to draw, where to put it, how to fetch the exact validator this
+          # job runs, the exact command, the effective style, repo-specific
+          # instructions, and the spec — printed to the log (agents read
           # failed-job logs) and mirrored into the step summary.
           {
             echo "=================================================================="
             echo "VISUAL PR CHECK FAILED: ${reason}"
             echo "=================================================================="
             echo
-            echo "HOW TO FIX (instructions for the agent preparing this PR):"
+            echo "HOW TO FIX — instructions for the agent preparing this PR"
             echo
-            echo "1. Author the visual summary per the spec below and commit it on"
-            echo "   this PR's branch at: ${SVG_DIR}/${PR_NUMBER}.svg"
+            echo "1. Read the diff first. Every box, identifier and claim you draw must"
+            echo "   come from the code, never from the PR description alone:"
+            echo "     gh pr view ${PR_NUMBER} && gh pr diff ${PR_NUMBER}"
             echo
-            echo "2. Verify it locally with EXACTLY the check this job runs:"
-            echo "     curl -fsSLO https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v1}/check_svg.py"
-            echo "     mkdir -p style && curl -fsSL -o style/default.json https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v1}/style/default.json"
-            if [ -n "$STYLE" ]; then
-              echo "     python3 check_svg.py --style ${STYLE} ${SVG_DIR}/${PR_NUMBER}.svg"
-            else
-              echo "     python3 check_svg.py ${SVG_DIR}/${PR_NUMBER}.svg"
+            echo "2. Author ONE SVG per the spec below and commit it on this PR's branch at:"
+            echo "     ${SVG_DIR}/${SVG_NAME}"
+            echo "   (PR number zero-padded to six digits.) A starting point that already"
+            echo "   passes the validator:"
+            echo "     mkdir -p ${SVG_DIR} && curl -fsSL -o ${SVG_DIR}/${SVG_NAME} ${base}/template.svg"
+            echo
+            echo "3. Fetch the exact validator this job runs. Python 3.10+, standard"
+            echo "   library only — nothing to pip install:"
+            echo "     curl -fsSLO ${base}/check_svg.py"
+            echo "     mkdir -p style && curl -fsSL -o style/default.json ${base}/style/default.json"
+            if [ -n "$BUNDLED_STYLE" ]; then
+              echo "     curl -fsSL -o style/${BUNDLED_STYLE}.json ${base}/style/${BUNDLED_STYLE}.json"
+              echo "   This repo uses the bundled '${BUNDLED_STYLE}' style; check_svg.py finds"
+              echo "   it in ./style/ by name."
+            elif [ -n "$STYLE_FILE" ]; then
+              echo "   This repo's own style is committed at ${STYLE} — it is already in"
+              echo "   your checkout; keys it omits fall back to style/default.json."
             fi
-            echo "   It must exit 0 with no ERROR lines before you push."
+            echo
+            echo "4. Run the check from the repository root, exactly like this:"
+            echo "     python3 check_svg.py${style_arg}${extra} ${SVG_DIR}/${SVG_NAME}"
+            echo "   The bar is exit code 0 with no 'ERROR:' lines. 'warning:' lines are"
+            echo "   text-fit estimates (char_factor x font-size per glyph): read them, fix"
+            echo "   what is real, but they never fail the check. Then commit and push;"
+            echo "   this job re-runs automatically."
             echo
             if [ -n "$INSTRUCTIONS" ]; then
               echo "REPO-SPECIFIC INSTRUCTIONS:"
               echo "$INSTRUCTIONS"
               echo
             fi
-            echo "EFFECTIVE STYLE (canvas, palette, text-fit heuristics):"
-            if [ -n "$STYLE" ] && [ -f "$STYLE" ]; then
-              cat "$STYLE"
-            else
-              cat "${ACTION_PATH}/style/default.json"
-            fi
+            echo "EFFECTIVE STYLE${BUNDLED_STYLE:+ (bundled: ${BUNDLED_STYLE})} — canvas, palette, text-fit heuristics:"
+            cat "${STYLE_FILE:-${ACTION_PATH}/style/default.json}"
             echo
             echo "AUTHORING SPEC:"
             cat "${ACTION_PATH}/SPEC.md"
           } | tee -a "$GITHUB_STEP_SUMMARY"
         }
 
+        if [ ! -f "$FILE" ] && [ "${MIN_CHANGED_LINES:-0}" -gt 0 ] 2>/dev/null; then
+          # Small-change escape. The count comes from the PR's file list via the
+          # API (the head is only sparsely checked out); linguist-* attributes are
+          # resolved against the BASE checkout in $GITHUB_WORKSPACE, so the PR
+          # cannot relabel its own files to slip under the bar.
+          COUNT_ARGS=(--svg-dir "$SVG_DIR" --repo-root "${GITHUB_WORKSPACE:-.}")
+          [ "$RESPECT_LINGUIST" = "false" ] && COUNT_ARGS+=(--count-everything)
+          if [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] \
+             && FILES_JSON="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[]' 2>/dev/null)" \
+             && COUNT="$(printf '%s\n' "$FILES_JSON" | python3 "${ACTION_PATH}/changed_lines.py" "${COUNT_ARGS[@]}")"; then
+            if [ "$COUNT" -lt "$MIN_CHANGED_LINES" ]; then
+              echo "PR changes ${COUNT} counted line(s), under min-changed-lines=${MIN_CHANGED_LINES} — visual summary not required."
+              outcome skipped-small-change
+              exit 0
+            fi
+            echo "PR changes ${COUNT} counted line(s) (min-changed-lines=${MIN_CHANGED_LINES}); visual summary required."
+          else
+            echo "::warning::Could not count changed lines for PR ${PR_NUMBER}; requiring the visual summary."
+          fi
+        fi
+
         if [ ! -f "$FILE" ]; then
-          emit_fix_instructions "missing ${SVG_DIR}/${PR_NUMBER}.svg"
-          echo "::error::Missing ${SVG_DIR}/${PR_NUMBER}.svg — see the job log/summary for the full authoring spec and the local check to run."
+          emit_fix_instructions "missing ${SVG_DIR}/${SVG_NAME}"
+          echo "::error::Missing ${SVG_DIR}/${SVG_NAME} — see the job log/summary for the full authoring spec and the local check to run."
+          outcome missing
           exit 1
         fi
 
-        if ! python3 "${ACTION_PATH}/check_svg.py" "${STYLE_ARGS[@]}" "$FILE"; then
-          emit_fix_instructions "${SVG_DIR}/${PR_NUMBER}.svg failed validation (see ERROR lines above)"
-          echo "::error::${SVG_DIR}/${PR_NUMBER}.svg failed validation — see the job log/summary for the spec and the local check to run."
+        if ! python3 "${ACTION_PATH}/check_svg.py" "${STYLE_ARGS[@]}" "${EXTRA[@]}" "$FILE"; then
+          emit_fix_instructions "${SVG_DIR}/${SVG_NAME} failed validation (see ERROR lines above)"
+          echo "::error::${SVG_DIR}/${SVG_NAME} failed validation — see the job log/summary for the spec and the local check to run."
+          outcome invalid
           exit 1
         fi
 
-        echo "Visual summary present and valid: ${SVG_DIR}/${PR_NUMBER}.svg"
+        echo "Visual summary present and valid: ${SVG_DIR}/${SVG_NAME}"
+        outcome passed

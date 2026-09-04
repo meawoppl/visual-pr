@@ -5,20 +5,112 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  self-test:
-    name: Validator self-test
+  tests:
+    name: pytest (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # check_svg.py uses PEP 604 unions, so 3.10 is the floor.
+        python: ['3.10', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install pytest
+      - run: python -m pytest -q
+
+  lint:
+    name: Lint workflows and the composite action's shell
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bundled template validates against the default style
-        run: python3 check_svg.py template.svg
-      - name: Off-style input fails
+      - name: actionlint (workflow files)
         run: |
-          printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"><rect fill="#ff0000"/></svg>' > /tmp/bad.svg
-          if python3 check_svg.py /tmp/bad.svg; then echo "should have failed"; exit 1; fi
-      - name: Style override changes the contract
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.7
+          ./actionlint -color
+      - name: "shellcheck (the composite action's run block)"
         run: |
-          printf '{"palette": ["#ff0000"], "canvas": [100, 100]}' > /tmp/style.json
-          printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#ff0000"/></svg>' > /tmp/red.svg
-          python3 check_svg.py --style /tmp/style.json /tmp/red.svg
+          python3 - <<'EOF'
+          import pathlib
+          text = pathlib.Path("action.yml").read_text().split("      run: |\n", 1)[1]
+          body = "\n".join(l[8:] if l.startswith("        ") else l for l in text.splitlines())
+          pathlib.Path("/tmp/action.bash").write_text("#!/usr/bin/env bash\n" + body + "\n")
+          EOF
+          shellcheck -s bash -S warning /tmp/action.bash
+
+  action-self-test:
+    name: Composite action end-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Valid SVG passes
+        uses: ./
+        with:
+          pr-number: valid
+          svg-dir: tests/fixtures
+
+      - name: Missing SVG fails with fix instructions
+        id: missing
+        uses: ./
+        continue-on-error: true
+        with:
+          pr-number: '999999'
+          svg-dir: tests/fixtures
+      - name: Off-palette SVG fails with fix instructions
+        id: invalid
+        uses: ./
+        continue-on-error: true
+        with:
+          pr-number: off-palette
+          svg-dir: tests/fixtures
+          style: ''
+          instructions: 'Repo-specific guidance appears here.'
+      - name: Custom style file is honored
+        uses: ./
+        with:
+          pr-number: red-100
+          svg-dir: tests/fixtures
+          style: tests/fixtures/style-red.json
+          extra-args: --i-support-this-software
+      - name: Bundled style name is honored (PR 412 -> 000412.svg)
+        uses: ./
+        with:
+          pr-number: '412'
+          svg-dir: examples/nord
+          style: nord
+      - name: Unknown style name fails
+        id: badstyle
+        uses: ./
+        continue-on-error: true
+        with:
+          pr-number: valid
+          svg-dir: tests/fixtures
+          style: not-a-style
+
+      - name: Assert outcomes
+        # GITHUB_STEP_SUMMARY is a fresh file per step, so the recipe text is
+        # asserted offline in tests/test_action.py; here we check the action's
+        # outputs and exit statuses on a real runner.
+        env:
+          MISSING: ${{ steps.missing.outcome }}
+          MISSING_OUT: ${{ steps.missing.outputs.outcome }}
+          MISSING_SVG: ${{ steps.missing.outputs.svg }}
+          INVALID: ${{ steps.invalid.outcome }}
+          INVALID_OUT: ${{ steps.invalid.outputs.outcome }}
+          BADSTYLE: ${{ steps.badstyle.outcome }}
+          BADSTYLE_OUT: ${{ steps.badstyle.outputs.outcome }}
+        run: |
+          set -eu
+          fail() { echo "$1"; exit 1; }
+          if ! { [ "$MISSING" = failure ] && [ "$MISSING_OUT" = missing ]; }; then fail "missing case: $MISSING/$MISSING_OUT"; fi
+          if [ "$MISSING_SVG" != tests/fixtures/999999.svg ]; then fail "svg output: $MISSING_SVG"; fi
+          if ! { [ "$INVALID" = failure ] && [ "$INVALID_OUT" = invalid ]; }; then fail "invalid case: $INVALID/$INVALID_OUT"; fi
+          if ! { [ "$BADSTYLE" = failure ] && [ "$BADSTYLE_OUT" = bad-style ]; }; then fail "bad-style case: $BADSTYLE/$BADSTYLE_OUT"; fi
+          echo "outcomes verified"

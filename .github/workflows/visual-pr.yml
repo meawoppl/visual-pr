@@ -1,0 +1,37 @@
+# Dogfood: every PR to this repo must commit its own visual summary at
+# 000-pr-visualization/<pr-number>.svg, checked by the action in this repo.
+name: Visual PR
+
+on:
+  # Runs from the BASE branch so the action code and style come from main;
+  # the PR head is checked out as data only.
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  visual-pr:
+    name: Visual PR attached
+    runs-on: ubuntu-latest
+    steps:
+      # The action itself (action.yml, check_svg.py, style/, SPEC.md) from base.
+      - uses: actions/checkout@v4
+
+      # The PR's SVG from the head — data only, never executed.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          path: pr-head
+          sparse-checkout: 000-pr-visualization
+
+      - uses: ./
+        with:
+          head-path: pr-head
+          instructions: |
+            This repo IS visual-pr. Ground the diagram in the changed files
+            (check_svg.py, action.yml, SPEC.md, style/). Use the BEFORE panel
+            for the behavior the PR fixes and the AFTER panel for the new
+            check or guarantee.

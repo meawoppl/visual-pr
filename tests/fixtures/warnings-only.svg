@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <!-- overflows the right margin: 120 chars * 23 * 0.5 = 1380 wide from x=1100 (right of the divider) -->
+  <text x="1100" y="400" font-size="23" fill="#c0caf5">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</text>
+  <!-- crosses the divider inside the band -->
+  <text x="800" y="600" font-size="23" fill="#c0caf5">this label straddles the BEFORE/AFTER divider</text>
+  <!-- missing font-size -->
+  <text x="55" y="800" fill="#c0caf5">no size here</text>
+</svg>

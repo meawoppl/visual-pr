@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <!-- Synthetic example PR for the visual-pr style matrix (examples/README.md).
+       Authored in the default palette; examples/build.py re-skins it by palette index. -->
+  <rect x="0" y="0" width="2000" height="1200" fill="#282828"/>
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#928374"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#83a598"/></marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8bb26"/></marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fb4934"/></marker>
+    <marker id="arr-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fe8019"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#928374">PR #423 · Shorten session TTL to 24 h with sliding refresh</text>
+  <text x="55" y="100" font-size="34" fill="#fbf1c7">Session tokens lived 30 days from issue regardless of use, so a leaked token stayed valid for weeks;</text>
+  <text x="55" y="140" font-size="34" fill="#fbf1c7">now TTL is 24 h and refresh_session() extends it on activity, so idle tokens die within a day.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#504945" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#fb4934">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#b8bb26">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#504945" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE -->
+  <g>
+    <rect x="80" y="250" width="560" height="130" fill="#32302f" stroke="#504945" stroke-width="1.5"/>
+    <text x="104" y="290" font-size="26" fill="#83a598">SessionToken</text>
+    <text x="104" y="328" font-size="23" fill="#d5c4a1">expires_at = issued_at + 30 days</text>
+    <text x="104" y="362" font-size="22" fill="#928374">SESSION_TTL_DAYS = 30, never refreshed</text>
+  </g>
+  <text x="100" y="530" font-size="22" fill="#83a598">issued</text>
+  <text x="153" y="490" font-size="22" fill="#928374">last activity · day 2</text>
+  <text x="340" y="530" font-size="22" fill="#fb4934">leaked · day 9</text>
+  <text x="900" y="530" font-size="22" fill="#928374" text-anchor="end">expires · day 30</text>
+  <rect x="100" y="560" width="800" height="30" fill="#32302f" stroke="#504945" stroke-width="1.5"/>
+  <rect x="340" y="560" width="560" height="30" fill="#32302f" stroke="#fb4934" stroke-width="2"/>
+  <line x1="100" y1="600" x2="900" y2="600" stroke="#928374" stroke-width="1.5"/>
+  <line x1="153" y1="545" x2="153" y2="560" stroke="#928374" stroke-width="1.5"/>
+  <line x1="340" y1="545" x2="340" y2="560" stroke="#fb4934" stroke-width="1.5"/>
+  <text x="100" y="630" font-size="21" fill="#928374" text-anchor="middle">day 0</text>
+  <text x="366" y="630" font-size="21" fill="#928374" text-anchor="middle">day 10</text>
+  <text x="633" y="630" font-size="21" fill="#928374" text-anchor="middle">day 20</text>
+  <text x="900" y="630" font-size="21" fill="#928374" text-anchor="middle">day 30</text>
+  <line x1="560" y1="690" x2="680" y2="690" stroke="#fb4934" stroke-width="3"/>
+  <text x="620" y="735" font-size="23" fill="#fb4934" text-anchor="middle">21 days of valid, leaked token</text>
+  <text x="620" y="767" font-size="22" fill="#928374" text-anchor="middle">owner stopped using it on day 2</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#32302f" stroke="#fb4934" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#ebdbb2">Leaked or forgotten tokens stay valid for weeks</text>
+    <text x="104" y="1046" font-size="23" fill="#fb4934">revocation needs a manual DELETE FROM sessions</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="1065" y="250" width="560" height="130" fill="#32302f" stroke="#b8bb26" stroke-width="2"/>
+    <text x="1089" y="290" font-size="26" fill="#83a598">SessionToken</text>
+    <text x="1089" y="328" font-size="23" fill="#d5c4a1">expires_at = last_seen_at + 24 h</text>
+    <text x="1089" y="362" font-size="22" fill="#b8bb26">refresh_session() bumps it on each request</text>
+  </g>
+  <text x="1085" y="530" font-size="22" fill="#83a598">issued</text>
+  <text x="1235" y="490" font-size="22" fill="#b8bb26">last activity · 9 h → +24 h</text>
+  <text x="1635" y="530" font-size="22" fill="#b8bb26">expired · 33 h</text>
+  <rect x="1085" y="560" width="550" height="30" fill="#32302f" stroke="#b8bb26" stroke-width="2"/>
+  <line x1="1085" y1="600" x2="1885" y2="600" stroke="#928374" stroke-width="1.5"/>
+  <line x1="1118" y1="545" x2="1118" y2="560" stroke="#b8bb26" stroke-width="1.5"/>
+  <line x1="1168" y1="545" x2="1168" y2="560" stroke="#b8bb26" stroke-width="1.5"/>
+  <line x1="1235" y1="545" x2="1235" y2="560" stroke="#b8bb26" stroke-width="1.5"/>
+  <line x1="1635" y1="545" x2="1635" y2="560" stroke="#b8bb26" stroke-width="1.5"/>
+  <text x="1085" y="630" font-size="21" fill="#928374" text-anchor="middle">0 h</text>
+  <text x="1285" y="630" font-size="21" fill="#928374" text-anchor="middle">12 h</text>
+  <text x="1485" y="630" font-size="21" fill="#928374" text-anchor="middle">24 h</text>
+  <text x="1685" y="630" font-size="21" fill="#928374" text-anchor="middle">36 h</text>
+  <text x="1885" y="630" font-size="21" fill="#928374" text-anchor="middle">48 h</text>
+  <line x1="1425" y1="690" x2="1545" y2="690" stroke="#b8bb26" stroke-width="3"/>
+  <text x="1485" y="735" font-size="23" fill="#b8bb26" text-anchor="middle">a leaked idle token dies in ≤ 24 h</text>
+  <text x="1485" y="767" font-size="22" fill="#928374" text-anchor="middle">active users never notice: each request slides the window</text>
+  <g>
+    <rect x="1065" y="810" width="860" height="100" fill="#32302f" stroke="#fe8019" stroke-width="1.5"/>
+    <text x="1089" y="850" font-size="24" fill="#fe8019">Absolute cap: SESSION_MAX_AGE = 7 days</text>
+    <text x="1089" y="886" font-size="22" fill="#d5c4a1">sliding refresh cannot extend a session past 7 days from issue</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#32302f" stroke="#b8bb26" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#ebdbb2">Idle sessions expire within a day</text>
+    <text x="1089" y="1046" font-size="23" fill="#b8bb26">leaked tokens lose value fast; active users stay signed in</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#928374">Does not revoke tokens issued before the deploy: existing 30-day sessions age out naturally over the following month.</text>
+</svg>
