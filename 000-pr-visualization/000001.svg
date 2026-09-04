@@ -7,7 +7,7 @@
   </defs>
   <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #1 · Tests, CI, bundled styles, example matrix, Starstruck license, glyph and box-fit checks</text>
   <text x="55" y="100" font-size="34" fill="#e6e9f5">check_svg.py and action.yml shipped untested, with one palette and nothing enforcing the check on this repo;</text>
-  <text x="55" y="140" font-size="34" fill="#e6e9f5">now 173 tests, six styles, glyph/box-fit checks and a self-applied workflow make every claim in the README checked.</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">now 173 tests, six styles, glyph and box-fit checks and a self-applied workflow verify every README claim.</text>
   <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
   <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
   <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
@@ -65,8 +65,8 @@
   </g>
   <g>
     <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
-    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Every README claim has a test that fails when it stops being true</text>
-    <text x="1089" y="1046" font-size="23" fill="#9ece6a">test_docs.py binds README, action.yml, SPEC.md, style/ and LICENSE together</text>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Each README claim has a test that fails once it stops being true</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">test_docs.py binds README, action.yml, SPEC.md, style/, LICENSE</text>
   </g>
 
   <text x="55" y="1172" font-size="22" fill="#565f89">The v1 tag the recipe curls still does not exist until this merges; and the glyph allowlist is a curated guess at what fonts render, not a font-file lookup.</text>
