@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <!-- Synthetic example PR for the visual-pr style matrix (examples/README.md).
+       Authored in the default palette; examples/build.py re-skins it by palette index. -->
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#565f89"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7aa2f7"/></marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/></marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f7768e"/></marker>
+    <marker id="arr-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e0af68"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #437 · Stream CSV exports instead of buffering them in memory</text>
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">export_csv() built the whole file in a StringIO, so a 2M-row report needed ~1.8 GB and got OOM-killed;</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">now rows stream through StreamingHttpResponse in 5k-row chunks, so memory stays flat at ~40 MB.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE -->
+  <g>
+    <rect x="80" y="250" width="560" height="150" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="290" font-size="26" fill="#7aa2f7">ReportExportView.get()</text>
+    <text x="104" y="330" font-size="23" fill="#a9b1d6">rows = list(ReportQuery.iterator())</text>
+    <text x="104" y="366" font-size="22" fill="#565f89">every row materialised before the first byte</text>
+  </g>
+  <line x1="360" y1="400" x2="360" y2="490" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+  <text x="376" y="450" font-size="22" fill="#565f89">2M Row objects</text>
+  <g>
+    <rect x="80" y="495" width="560" height="160" fill="#1e202e" stroke="#f7768e" stroke-width="2"/>
+    <text x="104" y="535" font-size="26" fill="#c0caf5">StringIO buffer</text>
+    <text x="104" y="575" font-size="23" fill="#a9b1d6">csv.writer(buf).writerows(rows)</text>
+    <text x="104" y="611" font-size="22" fill="#565f89">HttpResponse(buf.getvalue(), text/csv)</text>
+  </g>
+  <line x1="360" y1="655" x2="360" y2="735" stroke="#f7768e" stroke-width="1.5" marker-end="url(#arr-red)"/>
+  <line x1="300" y1="750" x2="420" y2="750" stroke="#f7768e" stroke-width="3"/>
+  <text x="360" y="795" font-size="23" fill="#f7768e" text-anchor="middle">RSS grows ~900 B per row</text>
+  <text x="360" y="827" font-size="22" fill="#565f89" text-anchor="middle">2M rows ≈ 1.8 GB against a 2 GiB pod limit</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">OOMKilled at ~1.4M rows</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">export dies after ~90 s with no partial output</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="1065" y="250" width="560" height="150" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="1089" y="290" font-size="26" fill="#7aa2f7">ReportExportView.get()</text>
+    <text x="1089" y="330" font-size="23" fill="#a9b1d6">ReportQuery.iterator(chunk_size=5000)</text>
+    <text x="1089" y="366" font-size="22" fill="#565f89">server-side cursor; nothing held up front</text>
+  </g>
+  <line x1="1345" y1="400" x2="1345" y2="490" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <text x="1361" y="450" font-size="22" fill="#9ece6a">5 000 rows at a time</text>
+  <g>
+    <rect x="1065" y="495" width="620" height="160" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="535" font-size="26" fill="#9ece6a">stream_rows()</text>
+    <text x="1089" y="575" font-size="23" fill="#a9b1d6">yield csv.writer(Echo()).writerow(row) per row</text>
+    <text x="1089" y="611" font-size="22" fill="#565f89">StreamingHttpResponse(stream_rows(), text/csv)</text>
+  </g>
+  <line x1="1345" y1="655" x2="1345" y2="700" stroke="#e0af68" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+  <g>
+    <rect x="1065" y="705" width="620" height="100" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
+    <text x="1089" y="745" font-size="24" fill="#e0af68">No Content-Length; chunked transfer</text>
+    <text x="1089" y="781" font-size="22" fill="#a9b1d6">nginx: proxy_buffering off for /exports/</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Flat ~40 MB RSS regardless of row count</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">first bytes in &lt; 200 ms; 2M rows complete in ~70 s</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">An error mid-export now yields a truncated file with a 200 status; clients must check the trailing row-count line.</text>
+</svg>

@@ -5,20 +5,90 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  self-test:
-    name: Validator self-test
+  tests:
+    name: pytest (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # check_svg.py uses PEP 604 unions, so 3.10 is the floor.
+        python: ['3.10', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install pytest
+      - run: python -m pytest -q
+
+  action-self-test:
+    name: Composite action end-to-end
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bundled template validates against the default style
-        run: python3 check_svg.py template.svg
-      - name: Off-style input fails
+
+      - name: Valid SVG passes
+        uses: ./
+        with:
+          pr-number: valid
+          svg-dir: tests/fixtures
+
+      - name: Missing SVG fails with fix instructions
+        id: missing
+        uses: ./
+        continue-on-error: true
+        with:
+          pr-number: '999999'
+          svg-dir: tests/fixtures
+      - name: Off-palette SVG fails with fix instructions
+        id: invalid
+        uses: ./
+        continue-on-error: true
+        with:
+          pr-number: off-palette
+          svg-dir: tests/fixtures
+          style: ''
+          instructions: 'Repo-specific guidance appears here.'
+      - name: Custom style file is honored
+        uses: ./
+        with:
+          pr-number: red-100
+          svg-dir: tests/fixtures
+          style: tests/fixtures/style-red.json
+          extra-args: --i-support-this-software
+      - name: Bundled style name is honored (PR 412 -> 000412.svg)
+        uses: ./
+        with:
+          pr-number: '412'
+          svg-dir: examples/nord
+          style: nord
+      - name: Unknown style name fails
+        id: badstyle
+        uses: ./
+        continue-on-error: true
+        with:
+          pr-number: valid
+          svg-dir: tests/fixtures
+          style: not-a-style
+
+      - name: Assert the failing cases failed and documented the fix
+        env:
+          MISSING: ${{ steps.missing.outcome }}
+          INVALID: ${{ steps.invalid.outcome }}
+          BADSTYLE: ${{ steps.badstyle.outcome }}
         run: |
-          printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"><rect fill="#ff0000"/></svg>' > /tmp/bad.svg
-          if python3 check_svg.py /tmp/bad.svg; then echo "should have failed"; exit 1; fi
-      - name: Style override changes the contract
-        run: |
-          printf '{"palette": ["#ff0000"], "canvas": [100, 100]}' > /tmp/style.json
-          printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#ff0000"/></svg>' > /tmp/red.svg
-          python3 check_svg.py --style /tmp/style.json /tmp/red.svg
+          set -eu
+          [ "$MISSING" = failure ] || { echo "missing-SVG case should fail (got $MISSING)"; exit 1; }
+          [ "$INVALID" = failure ] || { echo "off-palette case should fail (got $INVALID)"; exit 1; }
+          [ "$BADSTYLE" = failure ] || { echo "unknown-style case should fail (got $BADSTYLE)"; exit 1; }
+          # The failure recipe is mirrored into the step summary.
+          grep -q "VISUAL PR CHECK FAILED: missing tests/fixtures/999999.svg" "$GITHUB_STEP_SUMMARY"
+          grep -q "VISUAL PR CHECK FAILED: tests/fixtures/off-palette.svg failed validation" "$GITHUB_STEP_SUMMARY"
+          grep -q "Repo-specific guidance appears here." "$GITHUB_STEP_SUMMARY"
+          grep -q "AUTHORING SPEC:" "$GITHUB_STEP_SUMMARY"
+          grep -q "python3 check_svg.py tests/fixtures/off-palette.svg" "$GITHUB_STEP_SUMMARY"
+          echo "failure output verified"

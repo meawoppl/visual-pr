@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <!-- Synthetic example PR for the visual-pr style matrix (examples/README.md).
+       Authored in the default palette; examples/build.py re-skins it by palette index. -->
+  <rect x="0" y="0" width="2000" height="1200" fill="#fdf6e3"/>
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#839496"/></marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#268bd2"/></marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#859900"/></marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc322f"/></marker>
+    <marker id="arr-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#cb4b16"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#839496">PR #412 · Retry failed webhook deliveries with exponential backoff</text>
+  <text x="55" y="100" font-size="34" fill="#073642">A webhook delivery that got a 5xx or timed out was dropped after one attempt;</text>
+  <text x="55" y="140" font-size="34" fill="#073642">now deliver() schedules a RetryJob with 1 s → 5 min backoff, so outages don't lose events.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#93a1a1" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#dc322f">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#859900">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#93a1a1" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE -->
+  <g>
+    <rect x="80" y="250" width="480" height="130" fill="#eee8d5" stroke="#93a1a1" stroke-width="1.5"/>
+    <text x="104" y="290" font-size="26" fill="#268bd2">EventBus</text>
+    <text x="104" y="328" font-size="23" fill="#657b83">publish(event) → subscribers</text>
+    <text x="104" y="362" font-size="22" fill="#839496">topic: order.updated</text>
+  </g>
+  <line x1="320" y1="380" x2="320" y2="425" stroke="#839496" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+  <text x="336" y="410" font-size="22" fill="#839496">payload</text>
+  <g>
+    <rect x="80" y="430" width="560" height="130" fill="#eee8d5" stroke="#93a1a1" stroke-width="1.5"/>
+    <text x="104" y="470" font-size="26" fill="#586e75">WebhookSender.deliver()</text>
+    <text x="104" y="508" font-size="23" fill="#657b83">requests.post(url, json=payload, timeout=5)</text>
+    <text x="104" y="542" font-size="22" fill="#839496">single attempt</text>
+  </g>
+  <line x1="360" y1="560" x2="360" y2="640" stroke="#dc322f" stroke-width="1.5" marker-end="url(#arr-red)"/>
+  <line x1="300" y1="655" x2="420" y2="655" stroke="#dc322f" stroke-width="3"/>
+  <text x="360" y="700" font-size="23" fill="#dc322f" text-anchor="middle">5xx or timeout → return False</text>
+  <text x="360" y="732" font-size="22" fill="#839496" text-anchor="middle">logged at WARN; nothing re-enqueues it</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#eee8d5" stroke="#dc322f" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#586e75">Event lost for that subscriber</text>
+    <text x="104" y="1046" font-size="23" fill="#dc322f">customer must replay from the audit log by hand</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="1065" y="250" width="480" height="130" fill="#eee8d5" stroke="#93a1a1" stroke-width="1.5"/>
+    <text x="1089" y="290" font-size="26" fill="#268bd2">EventBus</text>
+    <text x="1089" y="328" font-size="23" fill="#657b83">publish(event) → subscribers</text>
+    <text x="1089" y="362" font-size="22" fill="#839496">topic: order.updated (unchanged)</text>
+  </g>
+  <line x1="1305" y1="380" x2="1305" y2="425" stroke="#839496" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+  <text x="1321" y="410" font-size="22" fill="#839496">payload</text>
+  <g>
+    <rect x="1065" y="430" width="620" height="130" fill="#eee8d5" stroke="#93a1a1" stroke-width="1.5"/>
+    <text x="1089" y="470" font-size="26" fill="#586e75">WebhookSender.deliver()</text>
+    <text x="1089" y="508" font-size="23" fill="#657b83">post(...) → on failure: RetryJob.schedule()</text>
+    <text x="1089" y="542" font-size="22" fill="#839496">attempt counter stored on the Delivery row</text>
+  </g>
+  <line x1="1375" y1="560" x2="1375" y2="605" stroke="#859900" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <text x="1391" y="590" font-size="22" fill="#859900">failure</text>
+  <g>
+    <rect x="1065" y="610" width="620" height="150" fill="#eee8d5" stroke="#859900" stroke-width="2"/>
+    <text x="1089" y="650" font-size="26" fill="#859900">RetryJob</text>
+    <text x="1089" y="690" font-size="23" fill="#657b83">delay = min(300, 2 ** attempt) s, max_attempts = 8</text>
+    <text x="1089" y="726" font-size="22" fill="#839496">idempotency key = event.id → safe to redeliver</text>
+  </g>
+  <line x1="1375" y1="760" x2="1375" y2="805" stroke="#cb4b16" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+  <text x="1391" y="790" font-size="22" fill="#cb4b16">attempt 8 failed</text>
+  <g>
+    <rect x="1065" y="810" width="620" height="100" fill="#eee8d5" stroke="#cb4b16" stroke-width="1.5"/>
+    <text x="1089" y="850" font-size="24" fill="#cb4b16">DeadLetterQueue after attempt 8</text>
+    <text x="1089" y="886" font-size="22" fill="#657b83">on-call alert; payload retained 14 days</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#eee8d5" stroke="#859900" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#586e75">Transient outage → eventual delivery</text>
+    <text x="1089" y="1046" font-size="23" fill="#859900">≤ 8 attempts over ~21 min, then dead-letter — never silent</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#839496">Does not preserve ordering: a retried event can arrive after newer events for the same subscriber.</text>
+</svg>

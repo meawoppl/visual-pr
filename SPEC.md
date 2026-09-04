@@ -2,9 +2,11 @@
 
 Produce **one SVG** that argues the pull request's thesis visually: what was
 wrong or missing before, what mechanism the PR adds, and what guarantee holds
-after. Commit it on the PR branch at `<svg-dir>/<pr-number>.svg`
-(default `000-pr-visualization/<pr-number>.svg` — the `000-` prefix sorts it
-first in GitHub's review file list).
+after. It is the first thing a reviewer sees, so it must be *true* before it
+is pretty. Commit it on the PR branch at `<svg-dir>/<pr-number>.svg` with the number
+zero-padded to **six digits**: PR 412 is `000-pr-visualization/000412.svg`.
+The `000-` prefix sorts the directory first in GitHub's review file list and
+the fixed-width names keep the SVGs in PR order.
 
 ## Rule zero: the diagram is grounded in the code
 
@@ -67,6 +69,15 @@ chars @26px; box detail ≤71 chars @23px; footer ≤165 chars @22px. Never let
 text touch a box edge (24px interior padding); split lines rather than
 shrinking below 21px. Free-floating labels must not cross an arrow's path or
 the center divider.
+
+## Characters
+
+Use only characters the font stack is sure to draw: ASCII, accented Latin,
+Greek and Cyrillic letters, ordinary punctuation (– — … •), arrows (→ ↔ ⇒),
+math (≤ ≥ ≠ ≈ ∑ √ ∞), check marks (✓ ✗), box-drawing and basic geometric
+shapes. No emoji, no icon-font glyphs, no zero-width characters — the
+validator rejects anything outside the style's `glyphs` allowlist as a hard
+error, because a reviewer would see a little empty box where your meaning was.
 
 ## Quality bar
 
