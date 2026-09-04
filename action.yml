@@ -16,7 +16,7 @@ inputs:
     default: '${{ github.event.pull_request.number }}'
   svg-dir:
     description: 'Directory (in the PR head) holding the six-digit <pr-number>.svg files'
-    default: '000-pr-visualization'
+    default: '.0-pr-viz'
   head-path:
     description: >-
       Where the workflow checked the PR head out (data only — this action

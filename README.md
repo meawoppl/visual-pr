@@ -24,13 +24,16 @@ someone bothers to draw one, and if it's honest.
 Coding agents will bother, every time, if the check tells them to. So the loop
 is:
 
-1. A PR opens without `000-pr-visualization/000412.svg`. The check fails.
+1. A PR opens without `.0-pr-viz/000412.svg`. The check fails.
 2. The failure log contains the whole assignment: the [authoring spec](SPEC.md),
    the effective style, your repo's own instructions, and the download-and-run
    commands for the same validator CI uses.
 3. The agent reads the diff, draws the argument, validates locally, commits.
-4. Review opens on the picture. The `000-` prefix sorts the directory to the
-   top of "Files changed"; six-digit names keep the SVGs in PR order.
+4. Review opens on the picture. GitHub lists changed files in byte order of
+   their paths, and `.0-pr-viz/` sorts ahead of `.github/`, every other
+   dotfile and every letter, so it is always first in "Files changed";
+   six-digit names keep the SVGs in PR order. (Plain `ls` hides a
+   dot-directory; `ls -a` and GitHub's tree show it.)
 
 The validator is deliberately narrow: it enforces the frame — canvas, palette,
 rough text fit, and a glyph allowlist so nothing renders as a missing-character
@@ -69,7 +72,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           path: pr-head
-          sparse-checkout: 000-pr-visualization
+          sparse-checkout: .0-pr-viz
 
       - uses: meawoppl/visual-pr@v1
         with:
@@ -86,7 +89,7 @@ PRs automatically (see [Escapes](#escapes)).
 
 This repository runs the workflow on itself
 ([`.github/workflows/visual-pr.yml`](.github/workflows/visual-pr.yml)): every
-PR here ships its own `000-pr-visualization/<six-digit n>.svg`.
+PR here ships its own `.0-pr-viz/<six-digit n>.svg`.
 
 ## What the agent sees when it fails
 
@@ -94,7 +97,7 @@ The job log and the step summary both carry the same self-sufficient block:
 
 ```
 ==================================================================
-VISUAL PR CHECK FAILED: missing 000-pr-visualization/000412.svg
+VISUAL PR CHECK FAILED: missing .0-pr-viz/000412.svg
 ==================================================================
 
 HOW TO FIX — instructions for the agent preparing this PR
@@ -104,10 +107,10 @@ HOW TO FIX — instructions for the agent preparing this PR
      gh pr view 412 && gh pr diff 412
 
 2. Author ONE SVG per the spec below and commit it on this PR's branch at:
-     000-pr-visualization/000412.svg
+     .0-pr-viz/000412.svg
    (PR number zero-padded to six digits.) A starting point that already
    passes the validator:
-     mkdir -p 000-pr-visualization && curl -fsSL -o 000-pr-visualization/000412.svg https://raw.githubusercontent.com/meawoppl/visual-pr/v1/template.svg
+     mkdir -p .0-pr-viz && curl -fsSL -o .0-pr-viz/000412.svg https://raw.githubusercontent.com/meawoppl/visual-pr/v1/template.svg
 
 3. Fetch the exact validator this job runs. Python 3.10+, standard
    library only — nothing to pip install:
@@ -116,7 +119,7 @@ HOW TO FIX — instructions for the agent preparing this PR
      curl -fsSL -o style/nord.json https://raw.githubusercontent.com/meawoppl/visual-pr/v1/style/nord.json
 
 4. Run the check from the repository root, exactly like this:
-     python3 check_svg.py --style nord 000-pr-visualization/000412.svg
+     python3 check_svg.py --style nord .0-pr-viz/000412.svg
    The bar is exit code 0 with no 'ERROR:' lines. ...
 
 REPO-SPECIFIC INSTRUCTIONS:
@@ -152,7 +155,7 @@ The [spec](SPEC.md) is short and opinionated. The essentials:
 | Input | Default | Purpose |
 |---|---|---|
 | `pr-number` | triggering PR | Which SVG to require: the number zero-padded to six digits, `000412.svg` |
-| `svg-dir` | `000-pr-visualization` | Directory in the PR head holding the SVGs |
+| `svg-dir` | `.0-pr-viz` | Directory in the PR head holding the SVGs |
 | `head-path` | `.` | Where the workflow checked the PR head out |
 | `style` | `default` | A bundled style name, or a path to your own style JSON |
 | `instructions` | — | Repo-specific authoring guidance, surfaced verbatim on failure |
@@ -166,7 +169,7 @@ The [spec](SPEC.md) is short and opinionated. The essentials:
 | Output | Values |
 |---|---|
 | `outcome` | `passed`, `skipped-label`, `skipped-small-change`, `missing`, `invalid`, `bad-style` |
-| `svg` | the path the check looked for, e.g. `000-pr-visualization/000412.svg` |
+| `svg` | the path the check looked for, e.g. `.0-pr-viz/000412.svg` |
 
 ### Escapes
 
@@ -236,7 +239,7 @@ and the default style anywhere:
 curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v1/check_svg.py
 mkdir -p style && curl -fsSL -o style/default.json \
   https://raw.githubusercontent.com/meawoppl/visual-pr/v1/style/default.json
-python3 check_svg.py [--style nord | --style path/to/style.json] 000-pr-visualization/000412.svg
+python3 check_svg.py [--style nord | --style path/to/style.json] .0-pr-viz/000412.svg
 ```
 
 | outcome | exit | meaning |

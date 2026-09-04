@@ -53,7 +53,7 @@ def test_plain_sum_and_both_input_shapes(repo):
 
 
 def test_svg_dir_never_counts(repo):
-    files = [f("src/a.py", 1), f("000-pr-visualization/000412.svg", 500), f("000-pr-visualization", 1)]
+    files = [f("src/a.py", 1), f(".0-pr-viz/000412.svg", 500), f(".0-pr-viz", 1)]
     r = run(files, "--repo-root", str(repo))
     assert r.stdout.strip() == "1"
     assert "(visual summary)" in r.stderr
@@ -77,7 +77,7 @@ def test_builtin_lockfiles_are_generated_unless_repo_says_otherwise(repo):
 
 
 def test_count_everything_ignores_all_rules(repo):
-    files = [f("gen/schema.ts", 900), f("package-lock.json", 3000), f("000-pr-visualization/000001.svg", 10)]
+    files = [f("gen/schema.ts", 900), f("package-lock.json", 3000), f(".0-pr-viz/000001.svg", 10)]
     r = run(files, "--repo-root", str(repo), "--count-everything")
     assert r.stdout.strip() == "3900"  # svg-dir is still excluded
 

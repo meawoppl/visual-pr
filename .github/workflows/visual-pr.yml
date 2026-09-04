@@ -1,5 +1,5 @@
 # Dogfood: every PR to this repo must commit its own visual summary at
-# 000-pr-visualization/<pr-number>.svg, checked by the action in this repo.
+# .0-pr-viz/<pr-number>.svg, checked by the action in this repo.
 name: Visual PR
 
 on:
@@ -25,7 +25,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           path: pr-head
-          sparse-checkout: 000-pr-visualization
+          sparse-checkout: .0-pr-viz
 
       - uses: ./
         with:

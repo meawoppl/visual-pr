@@ -4,9 +4,10 @@ Produce **one SVG** that argues the pull request's thesis visually: what was
 wrong or missing before, what mechanism the PR adds, and what guarantee holds
 after. It is the first thing a reviewer sees, so it must be *true* before it
 is pretty. Commit it on the PR branch at `<svg-dir>/<pr-number>.svg` with the number
-zero-padded to **six digits**: PR 412 is `000-pr-visualization/000412.svg`.
-The `000-` prefix sorts the directory first in GitHub's review file list and
-the fixed-width names keep the SVGs in PR order.
+zero-padded to **six digits**: PR 412 is `.0-pr-viz/000412.svg`.
+GitHub orders changed files by path bytes and `.0` sorts ahead of `.github`
+and every letter, so the directory is first in the review file list; the
+fixed-width names keep the SVGs in PR order.
 
 ## Rule zero: the diagram is grounded in the code
 
