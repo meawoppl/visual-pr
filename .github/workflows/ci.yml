@@ -108,8 +108,9 @@ jobs:
           BADSTYLE_OUT: ${{ steps.badstyle.outputs.outcome }}
         run: |
           set -eu
-          [ "$MISSING" = failure ]  && [ "$MISSING_OUT" = missing ]   || { echo "missing case: $MISSING/$MISSING_OUT"; exit 1; }
-          [ "$MISSING_SVG" = tests/fixtures/999999.svg ]              || { echo "svg output: $MISSING_SVG"; exit 1; }
-          [ "$INVALID" = failure ]  && [ "$INVALID_OUT" = invalid ]   || { echo "invalid case: $INVALID/$INVALID_OUT"; exit 1; }
-          [ "$BADSTYLE" = failure ] && [ "$BADSTYLE_OUT" = bad-style ] || { echo "bad-style case: $BADSTYLE/$BADSTYLE_OUT"; exit 1; }
+          fail() { echo "$1"; exit 1; }
+          if ! { [ "$MISSING" = failure ] && [ "$MISSING_OUT" = missing ]; }; then fail "missing case: $MISSING/$MISSING_OUT"; fi
+          if [ "$MISSING_SVG" != tests/fixtures/999999.svg ]; then fail "svg output: $MISSING_SVG"; fi
+          if ! { [ "$INVALID" = failure ] && [ "$INVALID_OUT" = invalid ]; }; then fail "invalid case: $INVALID/$INVALID_OUT"; fi
+          if ! { [ "$BADSTYLE" = failure ] && [ "$BADSTYLE_OUT" = bad-style ]; }; then fail "bad-style case: $BADSTYLE/$BADSTYLE_OUT"; fi
           echo "outcomes verified"

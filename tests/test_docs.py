@@ -33,7 +33,7 @@ def test_every_action_input_is_in_readme_table():
 
 
 def test_readme_table_has_no_phantom_inputs():
-    inputs_section = README.split("\n## Inputs\n", 1)[1].split("\n## ", 1)[0]
+    inputs_section = re.split(r"\n#{2,3} ", README.split("\n## Inputs\n", 1)[1], maxsplit=1)[0]
     documented = re.findall(r"^\| `([a-z0-9-]+)` \|", inputs_section, flags=re.M)
     assert set(documented) == set(action_inputs())
 
