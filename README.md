@@ -50,8 +50,9 @@ on:
   # pull_request_target runs from the BASE branch, so the check governs every
   # open PR the moment this lands on your default branch. It is safe here
   # because the PR head is checked out as data only — nothing from it runs.
+  # 'edited' is here so fixing the PR description re-runs the check.
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
@@ -122,6 +123,10 @@ HOW TO FIX — instructions for the agent preparing this PR
      python3 check_svg.py --style nord .0-pr-viz/000412.svg
    The bar is exit code 0 with no 'ERROR:' lines. ...
 
+5. Put the picture in the PR description — the very first line of it:
+     ![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<head sha>/.0-pr-viz/000412.svg)
+   ...
+
 REPO-SPECIFIC INSTRUCTIONS:
 ...
 EFFECTIVE STYLE (bundled: nord) — canvas, palette, text-fit heuristics:
@@ -162,14 +167,40 @@ The [spec](SPEC.md) is short and opinionated. The essentials:
 | `skip-label` | `no-visual` | PR label that opts out; the step passes |
 | `min-changed-lines` | `0` | Small-change escape: a PR without an SVG passes if it changes fewer counted lines than this |
 | `respect-linguist` | `true` | Leave `linguist-generated`/`linguist-vendored` files and common lockfiles out of that count |
+| `body-image` | `first` | Must the PR description show the SVG? `first`, `included`, or `not-required` |
 | `extra-args` | — | Extra flags appended to the `check_svg.py` run, e.g. `--i-support-this-software` |
 
 ### Outputs
 
 | Output | Values |
 |---|---|
-| `outcome` | `passed`, `skipped-label`, `skipped-small-change`, `missing`, `invalid`, `bad-style` |
+| `outcome` | `passed`, `skipped-label`, `skipped-small-change`, `missing`, `invalid`, `body-image-missing`, `bad-style`, `bad-input` |
 | `svg` | the path the check looked for, e.g. `.0-pr-viz/000412.svg` |
+
+### The picture in the description
+
+An SVG in the file tree is one click away; an SVG at the top of the PR
+description is zero. So by default (`body-image: first`) the check also
+requires the description to *open* with an image of the summary:
+
+```markdown
+![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<commit sha>/.0-pr-viz/000412.svg)
+```
+
+Any Markdown or HTML image whose URL ends with the SVG's repo path counts, so a
+raw URL pinned to a SHA or a branch, or a blob URL with `?raw=true`, all work.
+Pin the commit SHA: it survives merge and branch deletion, while a branch URL
+breaks when the branch goes. Update it when you push a new SVG. Leading blank
+lines and HTML comments (a PR template's, say) are skipped, and the image may
+be wrapped in a link. `included` accepts the image anywhere in the description;
+`not-required` turns the check off. Listen for the `edited` pull request event,
+as the quick start does, so fixing the description re-runs the check without a
+push. The failure output prints the exact line to add and the `gh pr edit`
+call to add it. `pr_body_image.py` performs the check and runs locally:
+
+```bash
+gh pr view 412 --json body --jq .body | python3 pr_body_image.py --mode first --svg-path .0-pr-viz/000412.svg
+```
 
 ### Escapes
 

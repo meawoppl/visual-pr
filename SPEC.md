@@ -9,6 +9,11 @@ GitHub orders changed files by path bytes and `.0` sorts ahead of `.github`
 and every letter, so the directory is first in the review file list; the
 fixed-width names keep the SVGs in PR order.
 
+Then put it where the reviewer looks first: the PR description opens with
+`![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<commit sha>/<svg-dir>/<n>.svg)`
+(the action's default `body-image: first` checks this; pin the SHA and update
+it when the SVG changes).
+
 ## Rule zero: the diagram is grounded in the code
 
 **If you didn't read it, don't draw it.** Every box title, field name,

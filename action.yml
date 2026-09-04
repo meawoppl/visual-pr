@@ -54,6 +54,14 @@ inputs:
       itself treats as generated (package-lock.json, yarn.lock, Cargo.lock,
       *.min.js, ...). 'false' counts every line of every file.
     default: 'true'
+  body-image:
+    description: >-
+      Whether the PR description must show the summary. 'first' (default):
+      the description must open with an image of the SVG. 'included': the
+      image may be anywhere in it. 'not-required': skip. An image counts when
+      its URL ends with <svg-dir>/<six-digit n>.svg — raw.githubusercontent.com
+      pinned to a SHA or branch, or a blob URL with ?raw=true.
+    default: 'first'
   extra-args:
     description: >-
       Extra command-line arguments appended to the check_svg.py invocation,
@@ -65,7 +73,8 @@ outputs:
   outcome:
     description: >-
       What happened: passed | skipped-label | skipped-small-change | missing |
-      invalid | bad-style. Useful for follow-up steps (comments, metrics).
+      invalid | body-image-missing | bad-style | bad-input. Useful for
+      follow-up steps (comments, metrics).
     value: ${{ steps.check.outputs.outcome }}
   svg:
     description: 'Path, under head-path, of the SVG the check looked for'
@@ -87,6 +96,10 @@ runs:
         EXTRA_ARGS: ${{ inputs.extra-args }}
         MIN_CHANGED_LINES: ${{ inputs.min-changed-lines }}
         RESPECT_LINGUIST: ${{ inputs.respect-linguist }}
+        BODY_IMAGE: ${{ inputs.body-image }}
+        PR_BODY: ${{ github.event.pull_request.body }}
+        HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         # For the time-boxed Starstruck nudge: API budget + who to look up.
         GH_TOKEN: ${{ github.token }}
@@ -102,6 +115,11 @@ runs:
           outcome skipped-label
           exit 0
         fi
+
+        case "$BODY_IMAGE" in
+          first|included|not-required) ;;
+          *) echo "::error::body-image must be first, included or not-required (got '${BODY_IMAGE}')"; outcome bad-input; exit 1 ;;
+        esac
 
         # Six-digit, zero-padded file names sort correctly and line up in the
         # review list: PR 412 -> 000412.svg. Non-numeric values (test fixtures)
@@ -131,6 +149,23 @@ runs:
         STYLE_ARGS=()
         [ -n "$STYLE_FILE" ] && STYLE_ARGS=(--style "$STYLE_FILE")
         read -r -a EXTRA <<< "$EXTRA_ARGS"
+
+        BASE_URL="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v1}"
+        IMAGE_URL="https://raw.githubusercontent.com/${HEAD_REPO:-OWNER/REPO}/${HEAD_SHA:-HEAD_SHA}/${SVG_DIR}/${SVG_NAME}"
+        emit_body_steps() {
+          # $1 = step number to print. Only when the description must show the image.
+          local n="$1" where="anywhere in"
+          [ "$BODY_IMAGE" = first ] && where="the very first line of"
+          echo "${n}. Put the picture in the PR description — ${where} it:"
+          echo "     ![Visual summary](${IMAGE_URL})"
+          echo "   Pin the commit SHA as above (branch URLs break once the branch is deleted)"
+          echo "   and update it whenever you push a new version of the SVG. For example:"
+          echo "     gh pr view ${PR_NUMBER} --json body --jq .body > /tmp/body.md   # edit, then:"
+          echo "     gh pr edit ${PR_NUMBER} --body-file /tmp/body.md"
+          echo "   Check it the way this job does:"
+          echo "     curl -fsSLO ${BASE_URL}/pr_body_image.py"
+          echo "     gh pr view ${PR_NUMBER} --json body --jq .body | python3 pr_body_image.py --mode ${BODY_IMAGE} --svg-path ${SVG_DIR}/${SVG_NAME}"
+        }
 
         emit_fix_instructions() {
           local reason="$1"
@@ -190,6 +225,10 @@ runs:
             echo "   what is real, but they never fail the check. Then commit and push;"
             echo "   this job re-runs automatically."
             echo
+            if [ "$BODY_IMAGE" != not-required ]; then
+              emit_body_steps 5
+              echo
+            fi
             if [ -n "$INSTRUCTIONS" ]; then
               echo "REPO-SPECIFIC INSTRUCTIONS:"
               echo "$INSTRUCTIONS"
@@ -239,4 +278,26 @@ runs:
         fi
 
         echo "Visual summary present and valid: ${SVG_DIR}/${SVG_NAME}"
+
+        if [ "$BODY_IMAGE" != not-required ]; then
+          if ! VERDICT="$(printf '%s' "$PR_BODY" | python3 "${ACTION_PATH}/pr_body_image.py" --mode "$BODY_IMAGE" --svg-path "${SVG_DIR}/${SVG_NAME}")"; then
+            {
+              echo "=================================================================="
+              echo "VISUAL PR CHECK FAILED: ${VERDICT}"
+              echo "=================================================================="
+              echo
+              echo "The SVG itself is present and valid. Reviewers should see it before"
+              echo "anything else, so the description has to carry it (body-image=${BODY_IMAGE})."
+              echo
+              emit_body_steps 1
+              echo
+              echo "Editing the description re-runs this check if the workflow listens for"
+              echo "the 'edited' pull request event; otherwise push any commit."
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "::error::${VERDICT} — see the job log/summary for the exact line to add."
+            outcome body-image-missing
+            exit 1
+          fi
+          echo "$VERDICT"
+        fi
         outcome passed

@@ -6,7 +6,7 @@ on:
   # Runs from the BASE branch so the action code and style come from main;
   # the PR head is checked out as data only.
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
