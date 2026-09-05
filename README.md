@@ -75,7 +75,7 @@ jobs:
           path: pr-head
           sparse-checkout: .0-pr-viz
 
-      - uses: meawoppl/visual-pr@v1
+      - uses: meawoppl/visual-pr@v2
         with:
           head-path: pr-head
           style: nord                      # a bundled name, or a path to your JSON
@@ -111,13 +111,13 @@ HOW TO FIX — instructions for the agent preparing this PR
      .0-pr-viz/000412.svg
    (PR number zero-padded to six digits.) A starting point that already
    passes the validator:
-     mkdir -p .0-pr-viz && curl -fsSL -o .0-pr-viz/000412.svg https://raw.githubusercontent.com/meawoppl/visual-pr/v1/template.svg
+     mkdir -p .0-pr-viz && curl -fsSL -o .0-pr-viz/000412.svg https://raw.githubusercontent.com/meawoppl/visual-pr/v2/template.svg
 
 3. Fetch the exact validator this job runs. Python 3.10+, standard
    library only — nothing to pip install:
-     curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v1/check_svg.py
-     mkdir -p style && curl -fsSL -o style/default.json https://raw.githubusercontent.com/meawoppl/visual-pr/v1/style/default.json
-     curl -fsSL -o style/nord.json https://raw.githubusercontent.com/meawoppl/visual-pr/v1/style/nord.json
+     curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v2/check_svg.py
+     mkdir -p style && curl -fsSL -o style/default.json https://raw.githubusercontent.com/meawoppl/visual-pr/v2/style/default.json
+     curl -fsSL -o style/nord.json https://raw.githubusercontent.com/meawoppl/visual-pr/v2/style/nord.json
 
 4. Run the check from the repository root, exactly like this:
      python3 check_svg.py --style nord .0-pr-viz/000412.svg
@@ -267,9 +267,9 @@ defaults. Slot semantics are in [`style/README.md`](style/README.md).
 and the default style anywhere:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v1/check_svg.py
+curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v2/check_svg.py
 mkdir -p style && curl -fsSL -o style/default.json \
-  https://raw.githubusercontent.com/meawoppl/visual-pr/v1/style/default.json
+  https://raw.githubusercontent.com/meawoppl/visual-pr/v2/style/default.json
 python3 check_svg.py [--style nord | --style path/to/style.json] .0-pr-viz/000412.svg
 ```
 
@@ -319,6 +319,17 @@ asks for a suggestion, and the human's GitHub account is theirs.
   verifying locally still see the request.
 
 It never slows the check and never changes the exit code.
+
+## Versioning
+
+`v2` is a moving tag on the current contract; `v2.0.0` and later point tags
+mark exact releases. Fixes and additive inputs move `v2`. Anything that
+changes what a passing PR looks like — the directory, the file name, what the
+description must contain, what the validator rejects — waits for `v3`. `v1` is
+frozen on the original contract (`000-pr-visualization/<n>.svg`, no
+description check) for anyone still on it. Releases are bundled and cut
+deliberately with `release.sh`; the policy lives in [AGENTS.md](AGENTS.md) and
+the history in [CHANGELOG.md](CHANGELOG.md).
 
 ## Development
 

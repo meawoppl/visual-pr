@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <defs>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f7768e"/></marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/></marker>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#565f89"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #4 · Cut v2: point docs and the recipe at the v2 tag, add versioning, a changelog and a release policy</text>
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">v1 was force-moved across three contract changes in a day, so every @v1 consumer broke three times;</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">now v2 is the frozen contract, v1 returns to its original commit, and release.sh is the only way tags move.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE: timeline of the v1 tag -->
+  <text x="80" y="270" font-size="24" fill="#c0caf5">Where the moving tag v1 pointed, 2026-09-04</text>
+  <line x1="100" y1="420" x2="900" y2="420" stroke="#565f89" stroke-width="1.5"/>
+  <line x1="100" y1="405" x2="100" y2="435" stroke="#7aa2f7" stroke-width="2"/>
+  <line x1="340" y1="405" x2="340" y2="435" stroke="#f7768e" stroke-width="2"/>
+  <line x1="580" y1="405" x2="580" y2="435" stroke="#f7768e" stroke-width="2"/>
+  <line x1="820" y1="405" x2="820" y2="435" stroke="#f7768e" stroke-width="2"/>
+  <text x="100" y="385" font-size="22" fill="#7aa2f7">77dd60e: 000-pr-visualization/412.svg</text>
+  <text x="340" y="470" font-size="22" fill="#f7768e">669787f: 000412.svg (six digits)</text>
+  <text x="580" y="385" font-size="22" fill="#f7768e">7260bb0: .0-pr-viz/</text>
+  <text x="820" y="470" font-size="22" fill="#f7768e" text-anchor="end">c18bbd7: body-image=first</text>
+  <text x="500" y="530" font-size="22" fill="#565f89" text-anchor="middle">git tag -f v1 main &amp;&amp; git push -f — three times</text>
+  <line x1="450" y1="600" x2="570" y2="600" stroke="#f7768e" stroke-width="3"/>
+  <text x="510" y="645" font-size="23" fill="#f7768e" text-anchor="middle">agent-portal on @v1 failed "Visual PR attached" after each move</text>
+  <text x="510" y="677" font-size="22" fill="#565f89" text-anchor="middle">its main still checked out the old directory the action no longer read</text>
+  <g>
+    <rect x="80" y="760" width="860" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="800" font-size="26" fill="#7aa2f7">action.yml · README.md</text>
+    <text x="104" y="838" font-size="23" fill="#a9b1d6">${ACTION_REF:-v1} · uses: meawoppl/visual-pr@v1 · raw …/v1/…</text>
+    <text x="104" y="872" font-size="22" fill="#565f89">no CHANGELOG, no AGENTS.md, tags moved by hand</text>
+  </g>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">A "stable" tag that meant whatever main meant that hour</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">consumers could not opt in or out of contract changes</text>
+  </g>
+
+  <!-- AFTER -->
+  <text x="1065" y="270" font-size="24" fill="#c0caf5">Two tags, two contracts</text>
+  <g>
+    <rect x="1065" y="295" width="410" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="1089" y="335" font-size="26" fill="#7aa2f7">v1 → 77dd60e</text>
+    <text x="1089" y="373" font-size="23" fill="#a9b1d6">frozen: original contract</text>
+    <text x="1089" y="407" font-size="22" fill="#565f89">000-pr-visualization/412.svg</text>
+  </g>
+  <g>
+    <rect x="1515" y="295" width="410" height="130" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1539" y="335" font-size="26" fill="#9ece6a">v2 = v2.0.0</text>
+    <text x="1539" y="373" font-size="23" fill="#a9b1d6">.0-pr-viz, %06d, body-image</text>
+    <text x="1539" y="407" font-size="22" fill="#565f89">moves only via release.sh</text>
+  </g>
+  <line x1="1495" y1="425" x2="1495" y2="490" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <g>
+    <rect x="1065" y="495" width="860" height="160" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="535" font-size="26" fill="#9ece6a">release.sh vX.Y.Z</text>
+    <text x="1089" y="575" font-size="23" fill="#a9b1d6">clean main · CHANGELOG has "## vX.Y.Z" · ACTION_REF:-vX · README @vX</text>
+    <text x="1089" y="611" font-size="22" fill="#565f89">tag vX.Y.Z, move vX, push, verify raw URLs by sha256, gh release create</text>
+    <text x="1089" y="641" font-size="22" fill="#565f89">shellchecked in ci.yml; a docs test checks it exists and is executable</text>
+  </g>
+  <g>
+    <rect x="1065" y="700" width="860" height="130" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
+    <text x="1089" y="740" font-size="24" fill="#e0af68">AGENTS.md (CLAUDE.md → symlink): bundle, then cut</text>
+    <text x="1089" y="776" font-size="22" fill="#a9b1d6">merging a PR never moves a tag; a passing PR looking different = new major</text>
+    <text x="1089" y="810" font-size="22" fill="#565f89">test_versioning_is_consistent refuses a half-bumped major</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">@v2 is a promise; @v1 works again for anyone still on it</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">CHANGELOG.md says what a consumer will notice per release</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">Tagging happens after this merges, by running release.sh v2.0.0 on main; the PR itself only changes files. agent-portal still needs its @v1 → @v2 switch.</text>
+</svg>
