@@ -75,9 +75,9 @@ def test_readme_local_recipe_matches_action_output():
     """The URLs the README tells humans to fetch must be the ones the
     action prints to agents on failure."""
     for path in ("check_svg.py", "style/default.json"):
-        url = f"https://raw.githubusercontent.com/meawoppl/visual-pr/v1/{path}"
+        url = f"https://raw.githubusercontent.com/meawoppl/visual-pr/v2/{path}"
         assert url in README, f"README missing {url}"
-    assert 'base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v1}"' in ACTION
+    assert 'base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v2}"' in ACTION
 
 
 def test_action_emits_the_spec_and_style_on_failure():
@@ -172,3 +172,12 @@ def test_body_image_modes_are_documented_and_match_the_helper():
         assert f"`{mode}`" in README
         assert mode in ACTION.split("\n  body-image:\n", 1)[1].split("\n  extra-args:\n", 1)[0]
     assert "first|included|not-required" in ACTION
+
+
+def test_versioning_is_consistent():
+    assert "@v1" not in README, "README must not point consumers at the frozen v1"
+    assert "meawoppl/visual-pr@v2" in README
+    assert "${ACTION_REF:-v2}" in ACTION and "${ACTION_REF:-v1}" not in ACTION
+    changelog = (ROOT / "CHANGELOG.md").read_text()
+    assert changelog.startswith("# Changelog") and "## v2.0.0" in changelog and "## v1" in changelog
+    assert "[CHANGELOG.md](CHANGELOG.md)" in README

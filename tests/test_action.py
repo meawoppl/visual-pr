@@ -124,7 +124,7 @@ def test_missing_svg_fails_with_the_full_recipe(run_action):
     for needle in (
         "VISUAL PR CHECK FAILED: missing tests/fixtures/999999.svg",
         "gh pr view 999999 && gh pr diff 999999",
-        "curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v1/check_svg.py",
+        "curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v2/check_svg.py",
         "python3 check_svg.py tests/fixtures/999999.svg",
         "REPO-SPECIFIC INSTRUCTIONS:\nName the migration file.",
         "AUTHORING SPEC:",
@@ -241,7 +241,7 @@ def test_body_image_first_fails_when_image_is_not_first(run_action):
     assert f"![Visual summary]({RAW_VALID})" in summary, "recipe prints the exact SHA-pinned line"
     assert "gh pr edit valid --body-file" in summary
     assert "python3 pr_body_image.py --mode first --svg-path tests/fixtures/valid.svg" in summary
-    assert "curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v1/pr_body_image.py" in summary
+    assert "curl -fsSLO https://raw.githubusercontent.com/meawoppl/visual-pr/v2/pr_body_image.py" in summary
 
 
 def test_body_image_included_accepts_anywhere(run_action):
