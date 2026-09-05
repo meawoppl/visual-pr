@@ -61,7 +61,7 @@
     <text x="1089" y="535" font-size="26" fill="#9ece6a">release.sh vX.Y.Z</text>
     <text x="1089" y="575" font-size="23" fill="#a9b1d6">clean main · CHANGELOG has "## vX.Y.Z" · ACTION_REF:-vX · README @vX</text>
     <text x="1089" y="611" font-size="22" fill="#565f89">tag vX.Y.Z, move vX, push, verify raw URLs by sha256, gh release create</text>
-    <text x="1089" y="641" font-size="22" fill="#565f89">shellchecked in ci.yml; test_repo_policy_files checks it exists and is executable</text>
+    <text x="1089" y="641" font-size="22" fill="#565f89">shellchecked in ci.yml; a docs test checks it exists and is executable</text>
   </g>
   <g>
     <rect x="1065" y="700" width="860" height="130" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
