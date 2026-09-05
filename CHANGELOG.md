@@ -1,7 +1,12 @@
 # Changelog
 
 Major tags (`v1`, `v2`) move with fixes; point tags (`v2.0.0`) are exact.
-A new major is cut whenever a passing PR would look different.
+A new major is cut whenever a passing PR would look different. Releases are
+cut with `./release.sh vX.Y.Z` — see AGENTS.md for the policy.
+
+## Unreleased
+
+Nothing yet.
 
 ## v2.0.0 — 2026-09-04
 

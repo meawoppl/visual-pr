@@ -42,7 +42,7 @@ jobs:
           body = "\n".join(l[8:] if l.startswith("        ") else l for l in text.splitlines())
           pathlib.Path("/tmp/action.bash").write_text("#!/usr/bin/env bash\n" + body + "\n")
           EOF
-          shellcheck -s bash -S warning /tmp/action.bash
+          shellcheck -s bash -S warning /tmp/action.bash release.sh
 
   action-self-test:
     name: Composite action end-to-end

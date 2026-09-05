@@ -327,7 +327,9 @@ mark exact releases. Fixes and additive inputs move `v2`. Anything that
 changes what a passing PR looks like — the directory, the file name, what the
 description must contain, what the validator rejects — waits for `v3`. `v1` is
 frozen on the original contract (`000-pr-visualization/<n>.svg`, no
-description check) for anyone still on it. See [CHANGELOG.md](CHANGELOG.md).
+description check) for anyone still on it. Releases are bundled and cut
+deliberately with `release.sh`; the policy lives in [AGENTS.md](AGENTS.md) and
+the history in [CHANGELOG.md](CHANGELOG.md).
 
 ## Development
 
