@@ -1,0 +1,57 @@
+name: 'Visual PR sweep'
+description: >-
+  Weekly janitor for repos using visual-pr: rewrites each merged PR's
+  description to a permalink of its SVG at the merge commit, indexes it in
+  ARCHIVE.md, and deletes the file from the working tree so shallow checkouts
+  stay small. History keeps every image.
+branding:
+  icon: 'archive'
+  color: 'purple'
+
+inputs:
+  svg-dir:
+    description: 'Directory holding the six-digit <pr-number>.svg files'
+    default: '.0-pr-viz'
+  keep-days:
+    description: 'Only sweep PRs merged at least this many days ago'
+    default: '7'
+  keep-last:
+    description: 'Always keep the N most recently merged visuals in the tree'
+    default: '0'
+  mode:
+    description: >-
+      pr: open a pull request labeled skip-label (needs pull-requests: write;
+      note a PR opened with the default GITHUB_TOKEN does not trigger other
+      workflows, so pass a PAT as `token` if the visual check is required).
+      push: commit straight onto the checked-out branch (needs contents: write).
+      none: leave the commit locally.
+    default: 'pr'
+  skip-label:
+    description: 'Label applied to the sweep PR so the Visual PR check skips it'
+    default: 'no-visual'
+  token:
+    description: 'Token for gh (default: github.token)'
+    default: '${{ github.token }}'
+  dry-run:
+    description: "'true' to report without changing anything"
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Sweep merged PR visuals
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        SVG_DIR: ${{ inputs.svg-dir }}
+        KEEP_DAYS: ${{ inputs.keep-days }}
+        KEEP_LAST: ${{ inputs.keep-last }}
+        MODE: ${{ inputs.mode }}
+        SKIP_LABEL: ${{ inputs.skip-label }}
+        DRY_RUN: ${{ inputs.dry-run }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        ARGS=(--svg-dir "$SVG_DIR" --keep-days "$KEEP_DAYS" --keep-last "$KEEP_LAST" --mode "$MODE" --skip-label "$SKIP_LABEL")
+        [ "$DRY_RUN" = "true" ] && ARGS+=(--dry-run)
+        python3 "${ACTION_PATH}/../sweep_merged.py" "${ARGS[@]}"

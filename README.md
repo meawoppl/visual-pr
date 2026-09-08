@@ -320,6 +320,56 @@ asks for a suggestion, and the human's GitHub account is theirs.
 
 It never slows the check and never changes the exit code.
 
+## Keeping the directory small
+
+Every merged PR leaves an SVG behind, and after a year a shallow clone is
+carrying hundreds of pictures nobody opens from the tree. The sweep action
+fixes that weekly without losing a single image, because git history already
+holds each one at its merge commit:
+
+1. It rewrites the merged PR's description so the image points at the
+   permalink of the file *as merged*, linked to the matching blob view.
+2. It records the PR in `.0-pr-viz/ARCHIVE.md` (number, date, title, link).
+3. It deletes the file and opens a PR labeled `no-visual` with the changes.
+
+```yaml
+name: Sweep PR visuals
+on:
+  schedule:
+    - cron: '17 6 * * 1'       # Mondays
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: meawoppl/visual-pr/sweep@v2
+        with:
+          keep-days: 7          # leave the last week's pictures in the tree
+          keep-last: 5          # and always the five most recent
+          # mode: push          # commit straight to the branch instead of a PR
+```
+
+A PR opened with the default `GITHUB_TOKEN` does not trigger other workflows,
+so if `Visual PR attached` is a required check either pass a PAT as `token` or
+use `mode: push`. `dry-run: 'true'` reports without touching anything. The
+same tool runs locally: `python3 sweep_merged.py --dry-run`.
+
+| Input | Default | Purpose |
+|---|---|---|
+| `svg-dir` | `.0-pr-viz` | Directory to sweep |
+| `keep-days` | `7` | Only sweep PRs merged at least this long ago |
+| `keep-last` | `0` | Always keep the N most recently merged in the tree |
+| `mode` | `pr` | `pr`, `push`, or `none` |
+| `skip-label` | `no-visual` | Label on the sweep PR so the visual check skips it |
+| `token` | `github.token` | Token for `gh` |
+| `dry-run` | `false` | Report only |
+
 ## Versioning
 
 `v2` is a moving tag on the current contract; `v2.0.0` and later point tags

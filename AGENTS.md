@@ -2,7 +2,9 @@
 
 This repo *is* the product: a composite GitHub Action (`action.yml`), a
 dependency-free validator (`check_svg.py`), two helpers the action calls
-(`changed_lines.py`, `pr_body_image.py`), bundled styles, an example matrix,
+(`changed_lines.py`, `pr_body_image.py`), a second action for the weekly
+sweep (`sweep/action.yml` around `sweep_merged.py`), bundled styles, an
+example matrix,
 and the docs that agents read when a check fails. Consumers pin a moving major
 tag (`meawoppl/visual-pr@v2`) and curl files from
 `raw.githubusercontent.com/meawoppl/visual-pr/v2/...`. Every change here lands
