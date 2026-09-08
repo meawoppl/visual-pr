@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#565f89"/></marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f7768e"/></marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #5 · Sweep action: permalink merged PR visuals and delete them from the tree</text>
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">Every merged PR left its SVG in .0-pr-viz/ forever, so a shallow clone grew by one picture per merge;</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">now sweep_merged.py repoints each PR's description at the merge-commit permalink and deletes the file.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE: dataflow -->
+  <g>
+    <rect x="80" y="250" width="620" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="290" font-size="26" fill="#7aa2f7">PR #n merges</text>
+    <text x="104" y="328" font-size="23" fill="#a9b1d6">.0-pr-viz/00000n.svg lands on main, 5–10 KB of text</text>
+    <text x="104" y="362" font-size="22" fill="#565f89">description image pinned to the branch head SHA</text>
+  </g>
+  <line x1="390" y1="380" x2="390" y2="425" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+  <g>
+    <rect x="80" y="430" width="620" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="470" font-size="26" fill="#c0caf5">main's working tree</text>
+    <text x="104" y="508" font-size="23" fill="#a9b1d6">000001.svg 000002.svg 000003.svg 000004.svg …</text>
+    <text x="104" y="542" font-size="22" fill="#565f89">nothing ever removes one</text>
+  </g>
+  <line x1="390" y1="560" x2="390" y2="640" stroke="#f7768e" stroke-width="1.5" marker-end="url(#arr-red)"/>
+  <line x1="330" y1="655" x2="450" y2="655" stroke="#f7768e" stroke-width="3"/>
+  <text x="390" y="700" font-size="23" fill="#f7768e" text-anchor="middle">git clone --depth 1 carries every picture ever merged</text>
+  <text x="390" y="732" font-size="22" fill="#565f89" text-anchor="middle">a year of PRs ≈ hundreds of files nobody opens from the tree</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">The archive lives in the checkout, not in history</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">shallow checkouts pay for review artifacts on every CI run</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="1065" y="250" width="620" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="1089" y="290" font-size="26" fill="#7aa2f7">weekly: uses meawoppl/visual-pr/sweep@v2</text>
+    <text x="1089" y="328" font-size="23" fill="#a9b1d6">merged, older than keep-days, outside keep-last</text>
+    <text x="1089" y="362" font-size="22" fill="#565f89">gh api pulls/n → merged_at, merge_commit_sha, body</text>
+  </g>
+  <line x1="1375" y1="380" x2="1375" y2="425" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <g>
+    <rect x="1065" y="430" width="620" height="160" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="470" font-size="26" fill="#9ece6a">sweep_merged.py, per PR</text>
+    <text x="1089" y="508" font-size="23" fill="#a9b1d6">rewrite_body → raw…/&lt;merge sha&gt;/.0-pr-viz/00000n.svg</text>
+    <text x="1089" y="542" font-size="22" fill="#565f89">contents?ref=sha must resolve first, else the file is kept</text>
+    <text x="1089" y="574" font-size="22" fill="#565f89">renamed dir? newest commit with the file (PR #1 here)</text>
+  </g>
+  <line x1="1375" y1="590" x2="1375" y2="635" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <g>
+    <rect x="1065" y="640" width="620" height="130" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="680" font-size="26" fill="#9ece6a">ARCHIVE.md row + git rm</text>
+    <text x="1089" y="718" font-size="23" fill="#a9b1d6">| #n | merged | title | [00000n.svg](blob permalink) |</text>
+    <text x="1089" y="752" font-size="22" fill="#565f89">mode pr (labeled no-visual) · push · none · --dry-run</text>
+  </g>
+  <g>
+    <rect x="1065" y="810" width="860" height="100" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
+    <text x="1089" y="850" font-size="24" fill="#e0af68">GITHUB_TOKEN PRs trigger no workflows</text>
+    <text x="1089" y="886" font-size="22" fill="#a9b1d6">required visual check? pass a PAT as token, or use mode: push</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Tree stays small; every image survives in its PR and in history</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">test_sweep.py: retention, idempotence, fallback, PR mode against a bare remote</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">Does not rewrite git history, so full clones keep every byte; only the working tree shrinks. Squash-merged repos rely on the squash commit holding the file.</text>
+</svg>
