@@ -302,3 +302,18 @@ def test_pr_mode_opens_a_labeled_pr_on_a_dated_branch(world):
 def test_keep_last_protects_newest_even_when_old(world):
     r = run_sweep(world, "--dry-run", "--keep-days", "0", "--keep-last", "2")
     assert "1 to sweep" in r.stdout and "#410" in r.stdout
+
+
+def test_forbidden_pr_creation_gets_an_actionable_hint(world):
+    remote = world["repo"].parent / "remote2.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(remote)], check=True)
+    subprocess.run(["git", "-C", str(world["repo"]), "remote", "add", "origin", str(remote)], check=True)
+    subprocess.run(["git", "-C", str(world["repo"]), "branch", "-M", "main"], check=True)
+    gh = world["bin"] / "gh"
+    gh.write_text(gh.read_text().replace(
+        '(A / "pr-create.json").write_text(json.dumps(args)); print("https://github.com/acme/widgets/pull/999"); sys.exit(0)',
+        'print("pull request create failed: GraphQL: GitHub Actions is not permitted to create or approve pull requests (createPullRequest)", file=sys.stderr); sys.exit(1)'))
+    r = run_sweep(world, "--mode", "pr", "--keep-days", "7")
+    assert r.returncode == 1
+    assert "HINT: the repository forbids GitHub Actions from opening PRs" in r.stderr
+    assert "can_approve_pull_request_reviews=true" in r.stderr and "re-running is safe" in r.stderr

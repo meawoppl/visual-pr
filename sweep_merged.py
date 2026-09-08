@@ -323,6 +323,18 @@ def main() -> int:
              "--body", "\n".join(body_lines), "--label", args.skip_label])
     if r.returncode != 0:
         print(f"ERROR: could not open the sweep PR: {r.stderr.strip()}", file=sys.stderr)
+        if "not permitted to create or approve pull requests" in r.stderr:
+            print(
+                "HINT: the repository forbids GitHub Actions from opening PRs. Either enable\n"
+                "  Settings → Actions → General → Workflow permissions →\n"
+                "  'Allow GitHub Actions to create and approve pull requests'\n"
+                f"  (gh api -X PUT repos/{repo}/actions/permissions/workflow "
+                "-f default_workflow_permissions=read -F can_approve_pull_request_reviews=true),\n"
+                "  or pass a PAT as the action's `token`, or use mode: push.\n"
+                f"  The branch {branch} was pushed; the descriptions are already updated, so\n"
+                "  re-running is safe.",
+                file=sys.stderr,
+            )
         return 1
     print(r.stdout.strip())
     return 0
