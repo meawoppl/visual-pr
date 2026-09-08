@@ -355,10 +355,15 @@ jobs:
           # mode: push          # commit straight to the branch instead of a PR
 ```
 
-A PR opened with the default `GITHUB_TOKEN` does not trigger other workflows,
-so if `Visual PR attached` is a required check either pass a PAT as `token` or
-use `mode: push`. `dry-run: 'true'` reports without touching anything. The
-same tool runs locally: `python3 sweep_merged.py --dry-run`.
+Nothing is deleted on faith: each permalink is fetched and must answer 200
+with SVG bytes, and the description is re-read from the API to confirm it now
+carries the permalink, before the file is removed. A PR opened with the
+default `GITHUB_TOKEN` does not trigger other workflows, so if
+`Visual PR attached` is a required check either pass a PAT as `token` or use
+`mode: push`. `dry-run: 'true'` reports without touching anything. The same
+tool runs locally: `python3 sweep_merged.py --dry-run`. This repo runs it on
+itself every Monday ([`sweep.yml`](.github/workflows/sweep.yml)): tests, then
+a dry run, then the real sweep opening a `no-visual` PR.
 
 | Input | Default | Purpose |
 |---|---|---|

@@ -26,6 +26,10 @@ python3 examples/build.py              # regenerate examples/ after touching src
   confirmation, not the discovery.
 - Shell in `action.yml` and `release.sh` is shellchecked in CI; workflows are
   actionlinted. Run both locally before pushing (`PATH=.venv/bin:$PATH`).
+- `.github/workflows/sweep.yml` runs the sweep action on this repo every
+  Monday and opens a `no-visual` PR with the removals. Merge those; they are
+  the weekly proof that the tool works against real GitHub. If one fails, the
+  tool is broken for consumers too — fix before the next release.
 - Never write the Starstruck marker from tests or tooling. `tests/conftest.py`
   points `XDG_CONFIG_HOME` at a temp dir; `examples/build.py` stubs the check.
 

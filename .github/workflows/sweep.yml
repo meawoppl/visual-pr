@@ -1,0 +1,56 @@
+# Weekly dogfood of the sweep action on this repo's own PR visuals.
+#
+# The run is the test: the sweep tests execute first, then a dry run prints
+# the plan, then the real sweep repoints each merged PR's description at the
+# merge-commit permalink, fetches that permalink (200 + SVG bytes), re-reads
+# the description from the API, and only then removes the file and opens a
+# PR labeled no-visual with the removals. Any failure fails the job.
+#
+# The PR is opened with GITHUB_TOKEN, so no other workflows run on it; that is
+# fine here because the removals need no diagram (the label skips the visual
+# check) and the code was already tested in this job.
+name: Sweep PR visuals
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'   # Mondays 06:17 UTC
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Report only; change nothing'
+        type: boolean
+        default: false
+      keep-days:
+        description: 'Only sweep PRs merged at least this many days ago'
+        default: '7'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sweep:
+    name: Sweep merged PR visuals
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sweep tests
+        run: |
+          python3 -m pip install -q pytest
+          XDG_CONFIG_HOME="$(mktemp -d)" python3 -m pytest -q tests/test_sweep.py
+
+      - name: Dry run (the plan)
+        uses: ./sweep
+        with:
+          dry-run: 'true'
+          keep-days: ${{ github.event.inputs.keep-days || '7' }}
+          keep-last: '2'
+
+      - name: Sweep and open the PR
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        uses: ./sweep
+        with:
+          keep-days: ${{ github.event.inputs.keep-days || '7' }}
+          keep-last: '2'
+          mode: pr

@@ -209,3 +209,11 @@ def test_sweep_action_inputs_are_documented():
     assert "meawoppl/visual-pr/sweep@v2" in section
     assert "sweep_merged.py" in section
     assert "sweep" in (ROOT / "CHANGELOG.md").read_text().split("## v2.0.0", 1)[0], "changelog (v2.1.0) mentions the sweep"
+
+
+def test_weekly_sweep_workflow_is_wired():
+    wf = (ROOT / ".github" / "workflows" / "sweep.yml").read_text()
+    assert "schedule:" in wf and "cron:" in wf and "workflow_dispatch:" in wf
+    assert "uses: ./sweep" in wf and "tests/test_sweep.py" in wf
+    assert "pull-requests: write" in wf and "contents: write" in wf
+    assert "sweep.yml" in README

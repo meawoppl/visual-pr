@@ -18,6 +18,10 @@ the checkout whose PR is merged and older than --keep-days (and not among the
    say), the newest commit on the current branch that has it is used instead
    — still permanent. A body with no image gets one prepended.
    Already-permalinked bodies are left alone.
+   Before anything is deleted the permalink is fetched and must answer
+   200 with SVG content, and the description is re-read from the API to
+   confirm it now carries the permalink (--no-verify-urls skips the fetch,
+   for offline tests).
 2. Record the PR in `<svg-dir>/ARCHIVE.md` (number, merge date, title,
    permalink) so the pictures stay one click away.
 3. `git rm` the file.
@@ -39,6 +43,8 @@ import re
 import subprocess
 import sys
 import tempfile
+import urllib.error
+import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import pr_body_image  # noqa: E402  (same directory)
@@ -104,6 +110,23 @@ def permalink_sha(repo: str, merge_sha: str, path: str) -> tuple[str | None, str
     return None, f"not found at merge commit {merge_sha[:8]} nor at any pushed commit on this branch"
 
 
+def url_ok(url: str, timeout: float = 15) -> tuple[bool, str]:
+    """GET the permalink: 200 and SVG content (by type or by sniffing '<')."""
+    req = urllib.request.Request(url, headers={"User-Agent": "visual-pr-sweep"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            ctype = r.headers.get("Content-Type", "")
+            head = r.read(256).lstrip()
+            # Sniff the bytes rather than trust the type: raw.githubusercontent
+            # says image/svg+xml for anything named .svg.
+            is_svg = head.startswith(b"<")
+            return (r.status == 200 and is_svg), f"{r.status} {ctype or 'no content-type'}" + ("" if is_svg else ", not SVG content")
+    except urllib.error.HTTPError as e:
+        return False, f"HTTP {e.code}"
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        return False, str(e)
+
+
 def permalinks(repo: str, sha: str, path: str) -> tuple[str, str]:
     return (
         f"https://raw.githubusercontent.com/{repo}/{sha}/{path}",
@@ -167,6 +190,7 @@ def main() -> int:
     ap.add_argument("--skip-label", default="no-visual", help="label for the sweep PR so the visual check skips it")
     ap.add_argument("--branch-prefix", default="visual-pr/sweep")
     ap.add_argument("--dry-run", action="store_true", help="report what would happen; change nothing")
+    ap.add_argument("--no-verify-urls", action="store_true", help="skip fetching each permalink before deleting (offline tests)")
     args = ap.parse_args()
 
     repo = args.repo
@@ -220,6 +244,12 @@ def main() -> int:
         new_body, changed = rewrite_body(pr.get("body") or "", path, raw_url, blob_url)
         date = parse_time(pr["merged_at"]).date().isoformat()
         print(f"  #{n}: merged {date} → {blob_url} {note}".rstrip() + ("" if changed else " (description already permalinked)"))
+        if not args.no_verify_urls:
+            ok, detail = url_ok(raw_url)
+            if not ok:
+                print(f"  #{n}: permalink does not serve the image ({detail}) — kept")
+                continue
+            print(f"  #{n}: permalink verified ({detail})")
         if args.dry_run:
             continue
         if changed:
@@ -231,6 +261,16 @@ def main() -> int:
                 print(f"  #{n}: could not update the description ({r.stderr.strip()}) — kept")
                 continue
             edited += 1
+        # Confirm from the API that the description really carries the permalink now.
+        try:
+            live = gh_json([f"repos/{repo}/pulls/{n}"]).get("body") or ""
+        except RuntimeError as e:
+            live = ""
+            print(f"  #{n}: could not re-read the description ({e})")
+        if raw_url not in live:
+            print(f"  #{n}: description does not show the permalink after update — kept")
+            continue
+        print(f"  #{n}: description confirmed")
         rows[n] = {"date": date, "title": pr.get("title", ""), "url": blob_url}
         run(["git", "rm", "-q", str(files[n])])
         removed.append(files[n])
@@ -247,7 +287,9 @@ def main() -> int:
     summary = f"Sweep {len(removed)} merged PR visual(s) older than {args.keep_days:g} day(s)"
     body_lines = [
         "Each image now lives at its merge-commit permalink, and the merged PR's",
-        "description points there. `ARCHIVE.md` indexes them.",
+        "description points there. Every permalink was fetched (200, SVG) and every",
+        "description re-read from the API before the file was removed. `ARCHIVE.md`",
+        "indexes them.",
         "",
         *[f"- #{pr_number(p)} → https://github.com/{repo}/blob/{rows[pr_number(p)]['url'].split('/blob/')[1]}" for p in removed],
     ]

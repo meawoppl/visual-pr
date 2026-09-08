@@ -6,7 +6,10 @@ cut with `./release.sh vX.Y.Z` — see AGENTS.md for the policy.
 
 ## Unreleased
 
-Nothing yet.
+- Sweep: before deleting, fetch the permalink (200 + SVG bytes) and re-read
+  the PR description from the API to confirm it carries the permalink; keep
+  the file otherwise. `--no-verify-urls` skips the fetch for offline tests.
+  This repo now runs the sweep on itself weekly (`.github/workflows/sweep.yml`).
 
 ## v2.1.0 — 2026-09-07
 

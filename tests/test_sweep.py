@@ -107,6 +107,47 @@ def test_archive_round_trip(sw, tmp_path):
     assert loaded[7]["url"] == "u" and loaded[412]["url"] == BLOB and loaded[412]["title"] == "Fix \\| thing"
 
 
+# ---- permalink verification -----------------------------------------------
+
+
+@pytest.fixture
+def http_server(tmp_path):
+    import http.server, threading, functools
+    root = tmp_path / "www" / "o" / "r" / ("c" * 40) / DIR
+    root.mkdir(parents=True)
+    (root / "000410.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg"/>')
+    (root / "000411.svg").write_text("not really an image")
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(tmp_path / "www"))
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t.start()
+    yield f"http://127.0.0.1:{srv.server_address[1]}"
+    srv.shutdown()
+
+
+def test_url_ok_requires_200_and_svg_content(sw, http_server):
+    base = f"{http_server}/o/r/{'c' * 40}/{DIR}"
+    ok, detail = sw.url_ok(f"{base}/000410.svg")
+    assert ok and detail.startswith("200"), detail
+    ok, detail = sw.url_ok(f"{base}/000411.svg")
+    assert not ok, "plain text is not an image"
+    ok, detail = sw.url_ok(f"{base}/000999.svg")
+    assert not ok and "404" in detail
+    ok, detail = sw.url_ok("http://127.0.0.1:9/nothing.svg", timeout=2)
+    assert not ok
+
+
+def test_description_reread_must_show_the_permalink(world):
+    """If the PATCH 'succeeds' but the body does not carry the permalink, keep the file."""
+    gh = world["bin"] / "gh"
+    gh.write_text(gh.read_text().replace('prs[n]["body"] = body; ', ""))  # fake gh forgets the edit
+    r = run_sweep(world, "--mode", "none", "--keep-days", "7")
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.count("does not show the permalink after update — kept") == 2
+    assert (world["repo"] / DIR / "000410.svg").exists() and (world["repo"] / DIR / "000411.svg").exists()
+    assert "nothing swept" in r.stdout
+
+
 # ---- end to end with a fake gh ---------------------------------------------
 
 
@@ -152,7 +193,8 @@ if args[:1] == ["api"]:
     if "-X" in args and "PATCH" in args:
         n = re.search(r"/pulls/(\\d+)", " ".join(args)).group(1)
         body = json.loads(pathlib.Path(args[args.index("--input") + 1]).read_text())["body"]
-        (A / f"patched-{{n}}.md").write_text(body); print("{{}}"); sys.exit(0)
+        (A / f"patched-{{n}}.md").write_text(body)
+        prs[n]["body"] = body; (A / "prs.json").write_text(json.dumps(prs)); print("{{}}"); sys.exit(0)
     m = re.fullmatch(r"repos/[^/]+/[^/]+/pulls/(\\d+)", args[1])
     if m:
         n = m.group(1)
@@ -172,7 +214,7 @@ print("fake gh: unhandled " + " ".join(args), file=sys.stderr); sys.exit(1)
 
 def run_sweep(world, *args):
     env = dict(os.environ, PATH=f"{world['bin']}:{os.environ['PATH']}")
-    return subprocess.run([sys.executable, str(SCRIPT), "--repo", REPO, *args], cwd=world["repo"],
+    return subprocess.run([sys.executable, str(SCRIPT), "--repo", REPO, "--no-verify-urls", *args], cwd=world["repo"],
                           env=env, capture_output=True, text=True)
 
 
@@ -204,6 +246,7 @@ def test_sweep_rewrites_descriptions_archives_and_removes(world):
     assert f"https://github.com/{REPO}/blob/{410:040x}/{DIR}/000410.svg" in archive
     log = subprocess.run(["git", "-C", str(world["repo"]), "log", "-1", "--format=%s%n%b", "--stat"], capture_output=True, text=True).stdout
     assert "Sweep 2 merged PR visual(s) older than 7 day(s)" in log
+    assert r.stdout.count("description confirmed") == 2
     assert "000410.svg" in log and "000411.svg" in log and "ARCHIVE.md" in log
     assert subprocess.run(["git", "-C", str(world["repo"]), "status", "--porcelain"], capture_output=True, text=True).stdout == ""
 
