@@ -37,7 +37,7 @@ git tag -a "$ver" -m "$ver" && git tag -f "$major" "$ver" >/dev/null
 git push -q origin "$ver" && git push -q -f origin "$major"
 echo "tagged $ver; $major -> $(git rev-parse --short "$major")"
 
-for f in check_svg.py pr_body_image.py changed_lines.py action.yml style/default.json template.svg SPEC.md; do
+for f in check_svg.py pr_body_image.py changed_lines.py sweep_merged.py action.yml sweep/action.yml style/default.json template.svg SPEC.md; do
   want="$(sha256sum "$f" | cut -c1-64)"
   for _ in 1 2 3 4 5 6; do
     got="$(curl -fsSL "https://raw.githubusercontent.com/$repo/$major/$f?r=$RANDOM" | sha256sum | cut -c1-64)" && [ "$got" = "$want" ] && break

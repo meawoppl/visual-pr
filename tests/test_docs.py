@@ -196,3 +196,16 @@ def test_repo_policy_files():
     assert release.is_file() and release.stat().st_mode & 0o111, "release.sh must be executable"
     for needle in ("ACTION_REF:-$major}", "visual-pr@$major", "gh release create", "git push -q -f origin \"$major\""):
         assert needle in release.read_text(), needle
+
+
+def test_sweep_action_inputs_are_documented():
+    sweep = (ROOT / "sweep" / "action.yml").read_text()
+    block = sweep.split("\ninputs:\n", 1)[1].split("\nruns:\n", 1)[0]
+    inputs = re.findall(r"^  ([a-z][a-z0-9-]*):\s*$", block, flags=re.M)
+    assert inputs, "could not parse sweep inputs"
+    section = README.split("## Keeping the directory small", 1)[1].split("\n## ", 1)[0]
+    for name in inputs:
+        assert re.search(rf"^\| `{re.escape(name)}` \|", section, flags=re.M), f"sweep input '{name}' missing from README"
+    assert "meawoppl/visual-pr/sweep@v2" in section
+    assert "sweep_merged.py" in section
+    assert "sweep" in (ROOT / "CHANGELOG.md").read_text().split("## v2.0.0", 1)[0], "changelog (v2.1.0) mentions the sweep"
