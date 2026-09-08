@@ -6,6 +6,10 @@ cut with `./release.sh vX.Y.Z` — see AGENTS.md for the policy.
 
 ## Unreleased
 
+Nothing yet.
+
+## v2.1.0 — 2026-09-07
+
 - `meawoppl/visual-pr/sweep@v2` (and `sweep_merged.py`): a weekly janitor
   that rewrites each merged PR's description to the permalink of its SVG at
   the merge commit, indexes it in `<svg-dir>/ARCHIVE.md`, and deletes the file

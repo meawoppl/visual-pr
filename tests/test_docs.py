@@ -208,4 +208,4 @@ def test_sweep_action_inputs_are_documented():
         assert re.search(rf"^\| `{re.escape(name)}` \|", section, flags=re.M), f"sweep input '{name}' missing from README"
     assert "meawoppl/visual-pr/sweep@v2" in section
     assert "sweep_merged.py" in section
-    assert "sweep" in (ROOT / "CHANGELOG.md").read_text().split("## v2.0.0", 1)[0], "changelog Unreleased mentions the sweep"
+    assert "sweep" in (ROOT / "CHANGELOG.md").read_text().split("## v2.0.0", 1)[0], "changelog (v2.1.0) mentions the sweep"

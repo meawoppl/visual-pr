@@ -47,7 +47,7 @@
   </g>
   <line x1="1375" y1="380" x2="1375" y2="425" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
   <g>
-    <rect x="1065" y="430" width="620" height="160" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <rect x="1065" y="430" width="760" height="160" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
     <text x="1089" y="470" font-size="26" fill="#9ece6a">sweep_merged.py, per PR</text>
     <text x="1089" y="508" font-size="23" fill="#a9b1d6">rewrite_body → raw…/&lt;merge sha&gt;/.0-pr-viz/00000n.svg</text>
     <text x="1089" y="542" font-size="22" fill="#565f89">contents?ref=sha must resolve first, else the file is kept</text>
@@ -55,7 +55,7 @@
   </g>
   <line x1="1375" y1="590" x2="1375" y2="635" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
   <g>
-    <rect x="1065" y="640" width="620" height="130" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <rect x="1065" y="640" width="760" height="130" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
     <text x="1089" y="680" font-size="26" fill="#9ece6a">ARCHIVE.md row + git rm</text>
     <text x="1089" y="718" font-size="23" fill="#a9b1d6">| #n | merged | title | [00000n.svg](blob permalink) |</text>
     <text x="1089" y="752" font-size="22" fill="#565f89">mode pr (labeled no-visual) · push · none · --dry-run</text>
@@ -68,7 +68,7 @@
   <g>
     <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
     <text x="1089" y="1006" font-size="26" fill="#c0caf5">Tree stays small; every image survives in its PR and in history</text>
-    <text x="1089" y="1046" font-size="23" fill="#9ece6a">test_sweep.py: retention, idempotence, fallback, PR mode against a bare remote</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">tests: retention, idempotence, renamed-path fallback, PR mode</text>
   </g>
 
   <text x="55" y="1172" font-size="22" fill="#565f89">Does not rewrite git history, so full clones keep every byte; only the working tree shrinks. Squash-merged repos rely on the squash commit holding the file.</text>
