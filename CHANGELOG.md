@@ -10,6 +10,8 @@ cut with `./release.sh vX.Y.Z` — see AGENTS.md for the policy.
   the PR description from the API to confirm it carries the permalink; keep
   the file otherwise. `--no-verify-urls` skips the fetch for offline tests.
   This repo now runs the sweep on itself weekly (`.github/workflows/sweep.yml`).
+- Sweep: when GitHub refuses to let Actions open the PR, say which setting
+  to flip (or to pass a PAT / use `mode: push`) instead of a bare GraphQL error.
 
 ## v2.1.0 — 2026-09-07
 

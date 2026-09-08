@@ -357,7 +357,10 @@ jobs:
 
 Nothing is deleted on faith: each permalink is fetched and must answer 200
 with SVG bytes, and the description is re-read from the API to confirm it now
-carries the permalink, before the file is removed. A PR opened with the
+carries the permalink, before the file is removed. Two GitHub settings to
+know about for `mode: pr`: the repository must allow Actions to open PRs
+(Settings → Actions → General → "Allow GitHub Actions to create and approve
+pull requests"; the tool tells you when it isn't), and a PR opened with the
 default `GITHUB_TOKEN` does not trigger other workflows, so if
 `Visual PR attached` is a required check either pass a PAT as `token` or use
 `mode: push`. `dry-run: 'true'` reports without touching anything. The same
