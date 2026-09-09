@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#565f89"/></marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f7768e"/></marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #9 · Docs: min-changed-lines needs pull-requests: read; say so in the quick start</text>
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">The quick start granted only contents: read, so the size escape's API call got 403 and was silently</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">ignored; now it grants pull-requests: read and the Escapes section says why, with a docs test.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE -->
+  <g>
+    <rect x="80" y="250" width="620" height="150" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="290" font-size="26" fill="#7aa2f7">README quick start · permissions:</text>
+    <text x="104" y="330" font-size="23" fill="#a9b1d6">contents: read</text>
+    <text x="104" y="366" font-size="22" fill="#565f89">an explicit block sets every other permission to none</text>
+  </g>
+  <line x1="390" y1="400" x2="390" y2="445" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+  <text x="406" y="430" font-size="22" fill="#565f89">reader adds min-changed-lines: 50</text>
+  <g>
+    <rect x="80" y="450" width="620" height="150" fill="#1e202e" stroke="#f7768e" stroke-width="2"/>
+    <text x="104" y="490" font-size="26" fill="#c0caf5">action.yml · small-change escape</text>
+    <text x="104" y="530" font-size="23" fill="#a9b1d6">gh api repos/O/R/pulls/N/files → 403</text>
+    <text x="104" y="566" font-size="22" fill="#f7768e">::warning Could not count changed lines; requiring the visual</text>
+  </g>
+  <line x1="390" y1="600" x2="390" y2="680" stroke="#f7768e" stroke-width="1.5" marker-end="url(#arr-red)"/>
+  <line x1="330" y1="695" x2="450" y2="695" stroke="#f7768e" stroke-width="3"/>
+  <text x="390" y="740" font-size="23" fill="#f7768e" text-anchor="middle">fail-safe, but the configured escape never fires</text>
+  <text x="390" y="772" font-size="22" fill="#565f89" text-anchor="middle">found while writing integration notes for another repo</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">Tiny PRs still demand a diagram, and the reason hides in a warning</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">the docs told readers to configure something the docs' own workflow blocked</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="1065" y="250" width="620" height="150" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="290" font-size="26" fill="#7aa2f7">README quick start · permissions:</text>
+    <text x="1089" y="330" font-size="23" fill="#a9b1d6">contents: read</text>
+    <text x="1089" y="366" font-size="23" fill="#9ece6a">pull-requests: read   # only for min-changed-lines</text>
+  </g>
+  <line x1="1375" y1="400" x2="1375" y2="445" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <g>
+    <rect x="1065" y="450" width="620" height="150" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="1089" y="490" font-size="26" fill="#c0caf5">action.yml · unchanged</text>
+    <text x="1089" y="530" font-size="23" fill="#a9b1d6">pulls/N/files → 200 → changed_lines.py counts</text>
+    <text x="1089" y="566" font-size="22" fill="#565f89">under the floor → outcome skipped-small-change</text>
+  </g>
+  <g>
+    <rect x="1065" y="680" width="860" height="130" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
+    <text x="1089" y="720" font-size="24" fill="#e0af68">Escapes section states the requirement</text>
+    <text x="1089" y="756" font-size="22" fill="#a9b1d6">"a permissions: block zeroes everything it does not name"</text>
+    <text x="1089" y="788" font-size="22" fill="#565f89">test_quick_start_grants_pull_requests_read_for_the_size_escape</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">Copy the quick start and the size escape works as configured</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">CHANGELOG Unreleased carries it for the next v2.x</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">Docs only: the action's fail-safe behavior on a 403 is unchanged, and this repo's own dogfood workflow never used the escape.</text>
+</svg>

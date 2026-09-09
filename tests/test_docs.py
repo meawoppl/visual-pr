@@ -217,3 +217,8 @@ def test_weekly_sweep_workflow_is_wired():
     assert "uses: ./sweep" in wf and "tests/test_sweep.py" in wf
     assert "pull-requests: write" in wf and "contents: write" in wf
     assert "sweep.yml" in README
+
+
+def test_quick_start_grants_pull_requests_read_for_the_size_escape():
+    quick = README.split("## Quick start", 1)[1].split("\n## ", 1)[0]
+    assert "pull-requests: read" in quick
