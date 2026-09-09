@@ -57,7 +57,7 @@
   <text x="1129" y="670" font-size="23" fill="#9ece6a">ACTION_REF:-v3, README @v3 and raw URLs; test_versioning_is_consistent</text>
   <g>
     <rect x="1065" y="740" width="860" height="130" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
-    <text x="1089" y="780" font-size="24" fill="#e0af68">Contract change, so a new major: v2 frozen, v3.0.0 after the viewer verdict</text>
+    <text x="1089" y="780" font-size="24" fill="#e0af68">New major: v2 frozen, v3.0.0 tagged after the viewer verdict</text>
     <text x="1089" y="816" font-size="22" fill="#a9b1d6">a passing SVG can now fail; merged visuals are never re-checked</text>
     <text x="1089" y="848" font-size="22" fill="#565f89">repos with verified viewers widen "glyphs" in their own style JSON</text>
   </g>
