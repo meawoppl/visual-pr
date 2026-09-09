@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">visual-pr v3 glyph probe B: code points the default allowlist DROPS. Tell us which of these draw and which are boxes in the real viewer.</text>
+  <text x="55" y="140" font-size="22" fill="#565f89">U+2192 → U+2190 ← U+2194 ↔ U+21D2 ⇒</text>
+  <text x="55" y="182" font-size="34" fill="#f7768e" xml:space="preserve">→ ← ↔ ⇒</text>
+  <text x="55" y="270" font-size="22" fill="#565f89">U+2212 − U+2264 ≤ U+2265 ≥ U+2260 ≠ U+2248 ≈ U+221E ∞ U+221A √ U+2211 ∑</text>
+  <text x="55" y="312" font-size="34" fill="#f7768e" xml:space="preserve">− ≤ ≥ ≠ ≈ ∞ √ ∑</text>
+  <text x="55" y="400" font-size="22" fill="#565f89">U+2013 – U+2014 — U+2026 … U+2022 • U+2018 ‘ U+2019 ’ U+201C “ U+201D ”</text>
+  <text x="55" y="442" font-size="34" fill="#f7768e" xml:space="preserve">– — … • ‘ ’ “ ”</text>
+  <text x="55" y="530" font-size="22" fill="#565f89">U+2713 ✓ U+2717 ✗ U+25A0 ■ U+25B2 ▲ U+25CF ● U+2500 ─ U+2502 │ U+27E8 ⟨ U+27E9 ⟩</text>
+  <text x="55" y="572" font-size="34" fill="#f7768e" xml:space="preserve">✓ ✗ ■ ▲ ● ─ │ ⟨ ⟩</text>
+  <text x="55" y="660" font-size="22" fill="#565f89">Greek U+03BB λ U+0394 Δ U+03A9 Ω · Cyrillic U+042F Я · Latin Ext-A U+0141 Ł U+0153 œ</text>
+  <text x="55" y="702" font-size="34" fill="#f7768e" xml:space="preserve">λ Δ Ω Я Ł œ</text>
+  <text x="55" y="1172" font-size="22" fill="#565f89">Anything here that draws reliably is a candidate for a repo to re-add via its own style JSON "glyphs" key; the default stays conservative.</text>
+</svg>

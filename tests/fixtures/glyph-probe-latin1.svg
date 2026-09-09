@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">visual-pr v3 glyph probe A: every code point the default allowlist KEEPS (ASCII + Latin-1). Every cell below must draw; no boxes.</text>
+  <text x="55" y="140" font-size="22" fill="#565f89">U+0020-004F</text>
+  <text x="55" y="182" font-size="30" fill="#e6e9f5" xml:space="preserve"> !"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNO</text>
+  <text x="55" y="250" font-size="22" fill="#565f89">U+0050-007E</text>
+  <text x="55" y="292" font-size="30" fill="#e6e9f5" xml:space="preserve">PQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~</text>
+  <text x="55" y="360" font-size="22" fill="#565f89">U+00A1-00BF Latin-1 symbols (¡ ¢ £ ¤ ¥ ¦ § ¨ © ª « ¬ ® ¯ ° ± ² ³ ´ µ ¶ · ¸ ¹ º » ¼ ½ ¾ ¿)</text>
+  <text x="55" y="402" font-size="30" fill="#e6e9f5" xml:space="preserve">¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿</text>
+  <text x="55" y="470" font-size="22" fill="#565f89">U+00C0-00DF Latin-1 capitals</text>
+  <text x="55" y="512" font-size="30" fill="#e6e9f5" xml:space="preserve">ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß</text>
+  <text x="55" y="580" font-size="22" fill="#565f89">U+00E0-00FF Latin-1 small letters</text>
+  <text x="55" y="622" font-size="30" fill="#e6e9f5" xml:space="preserve">àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ</text>
+  <text x="55" y="690" font-size="22" fill="#565f89">The same at 22px (body size), 23px and 26px</text>
+  <text x="55" y="732" font-size="22" fill="#a9b1d6" xml:space="preserve">± µ · × ÷ ° § ¶ « » ¼ ½ ¾ ¹ ² ³ ¡ ¿ © ® ¢ £ ¥</text>
+  <text x="55" y="790" font-size="22" fill="#565f89">26px</text>
+  <text x="55" y="832" font-size="26" fill="#c0caf5" xml:space="preserve">± µ · × ÷ ° § ¶ « » ¼ ½ ¾ ¹ ² ³ ¡ ¿ © ® ¢ £ ¥ é ñ ü ß Ø å</text>
+  <text x="55" y="890" font-size="22" fill="#565f89">Bold + letter-spacing (panel labels use these)</text>
+  <text x="55" y="932" font-size="22" fill="#9ece6a" xml:space="preserve">BEFORE ± µ · × AFTER ° § ¶ « »</text>
+  <text x="55" y="1172" font-size="22" fill="#565f89">Report any cell that shows as a box (with its row). Rows 1-2 are ASCII and should be beyond doubt; rows 3-5 are the Latin-1 supplement we keep.</text>
+</svg>
