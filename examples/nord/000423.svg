@@ -55,7 +55,7 @@
     <text x="1089" y="362" font-size="22" fill="#a3be8c">refresh_session() bumps it on each request</text>
   </g>
   <text x="1085" y="530" font-size="22" fill="#81a1c1">issued</text>
-  <text x="1235" y="490" font-size="22" fill="#a3be8c">last activity · 9 h → +24 h</text>
+  <text x="1235" y="490" font-size="22" fill="#a3be8c">last activity · 9 h -> +24 h</text>
   <text x="1635" y="530" font-size="22" fill="#a3be8c">expired · 33 h</text>
   <rect x="1085" y="560" width="550" height="30" fill="#3b4252" stroke="#a3be8c" stroke-width="2"/>
   <line x1="1085" y1="600" x2="1885" y2="600" stroke="#616e88" stroke-width="1.5"/>
@@ -69,7 +69,7 @@
   <text x="1685" y="630" font-size="21" fill="#616e88" text-anchor="middle">36 h</text>
   <text x="1885" y="630" font-size="21" fill="#616e88" text-anchor="middle">48 h</text>
   <line x1="1425" y1="690" x2="1545" y2="690" stroke="#a3be8c" stroke-width="3"/>
-  <text x="1485" y="735" font-size="23" fill="#a3be8c" text-anchor="middle">a leaked idle token dies in ≤ 24 h</text>
+  <text x="1485" y="735" font-size="23" fill="#a3be8c" text-anchor="middle">a leaked idle token dies in &lt;= 24 h</text>
   <text x="1485" y="767" font-size="22" fill="#616e88" text-anchor="middle">active users never notice: each request slides the window</text>
   <g>
     <rect x="1065" y="810" width="860" height="100" fill="#3b4252" stroke="#d08770" stroke-width="1.5"/>

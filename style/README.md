@@ -26,15 +26,22 @@ gates and caveats, neutrals for everything that didn't change.
 ### Glyph allowlist
 
 Fonts draw characters they lack as little boxes, and a validator cannot know
-which fonts a reviewer's browser will fall back to. So the style declares what
-is safe: the default covers what every mainstream system font collection
-renders — ASCII, Latin-1 and Latin Extended, Greek, Cyrillic, general
-punctuation (– — … • ‹ ›), arrows (→ ↔ ⇒), mathematical operators (≤ ≥ ≠ ≈ ∑
-√ ∞), box drawing and block elements, geometric shapes (■ ▲ ●), check marks
-(✓ ✗) and angle brackets (⟨ ⟩). Not on the list, deliberately: emoji, icon-font
-private-use glyphs, zero-width and other format characters, and everything in
-the supplementary planes. Override `glyphs` in your style JSON to change it
-(the key replaces the default list, so copy it and add).
+which fonts a reviewer's viewer will fall back to. So the style declares what
+is safe, and the default is deliberately small: **ASCII plus Latin-1**
+(`0020-007E`, `00A0-00FF`) - accented letters and the Latin-1 symbols
+`± µ · × ÷ ° § ¶ « »`. Arrows, math operators, en/em dashes, ellipses,
+bullets, curly quotes, check marks and shapes are *not* on the list: they were
+admitted once and rendered as boxes on a real viewer even though the declared
+font stack nominally carries them (issue #10). The validator names the ASCII
+replacement when it rejects one (`->`, `<=`, `~`, `-`, `...`, `+`, `x`).
+Override `glyphs` in your style JSON to widen it for viewers you have verified
+(the key replaces the default list, so copy it and add). For orientation: on a
+DejaVu-based stack the en/em dash, ellipsis, bullet and curly quotes
+(`2010-2027`), Greek (`0370-03FF`), Cyrillic (`0400-04FF`) and Latin
+Extended-A (`0100-017F`) drew correctly while arrows, math operators, check
+marks and shapes did not. Treat that as a floor: put the probe SVGs in
+`tests/fixtures/glyph-probe-*.svg` in front of your actual viewer before
+re-adding anything.
 
 ## Palette slots
 

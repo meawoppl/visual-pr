@@ -273,12 +273,27 @@ def test_tofu_fixture_is_a_hard_error_naming_each_character(run_check):
     assert r.stderr.count("ERROR:") == 3
 
 
-def test_typographic_characters_the_spec_recommends_are_allowed(check_svg):
+def test_latin1_is_allowed_and_beyond_is_not(check_svg):
     style = check_svg.load_style(None)
     ranges = check_svg.glyph_ranges(style)
-    sample = "→ ↔ ⇒ ≤ ≥ ≠ ≈ ∑ √ ∞ ✓ ✗ — – … • · × ± ° µ ⟨x⟩ ■ ▲ ● ─ │ é ñ ü λ Δ Ω Я № € ™ ‹›"
-    check_svg.check_glyphs(ET.fromstring(f"<text>{sample}</text>"), ranges)
+    ok = "± µ · × ÷ ° § ¶ « » ¼ ½ ¾ ¡ ¿ © ® é ñ ü ß Ø å <- -> <= >= != ~ ... + x"
+    e = ET.Element("text"); e.text = ok  # .text, so '<' needs no XML escaping here
+    check_svg.check_glyphs(e, ranges)
     assert check_svg.errors == []
+    # Everything that passed v2 and drew as boxes on a real viewer (issue #10).
+    bad = "→ − ≈ — – … ✓ ≤ λ Я Ł"
+    e = ET.Element("text"); e.text = bad
+    check_svg.check_glyphs(e, ranges)
+    assert len(check_svg.errors) == len(bad.split())
+
+
+def test_glyph_error_suggests_the_ascii_replacement(check_svg):
+    style = check_svg.load_style(None)
+    ranges = check_svg.glyph_ranges(style)
+    check_svg.check_glyphs(ET.fromstring("<text>a → b ≤ c — d</text>"), ranges)
+    msgs = "\n".join(check_svg.errors)
+    assert "U+2192 '→' (RIGHTWARDS ARROW), outside the style's glyph allowlist" in msgs
+    assert "write '->' instead" in msgs and "write '<=' instead" in msgs and "write ' - ' instead" in msgs
 
 
 def test_whitespace_and_each_offender_reported_once(check_svg):

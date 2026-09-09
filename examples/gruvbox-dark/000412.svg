@@ -12,7 +12,7 @@
   </defs>
   <text x="55" y="52" font-size="24" letter-spacing="1" fill="#928374">PR #412 · Retry failed webhook deliveries with exponential backoff</text>
   <text x="55" y="100" font-size="34" fill="#fbf1c7">A webhook delivery that got a 5xx or timed out was dropped after one attempt;</text>
-  <text x="55" y="140" font-size="34" fill="#fbf1c7">now deliver() schedules a RetryJob with 1 s → 5 min backoff, so outages don't lose events.</text>
+  <text x="55" y="140" font-size="34" fill="#fbf1c7">now deliver() schedules a RetryJob with 1 s -> 5 min backoff, so outages don't lose events.</text>
   <line x1="55" y1="165" x2="1945" y2="165" stroke="#504945" stroke-width="1"/>
   <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#fb4934">BEFORE</text>
   <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#b8bb26">AFTER</text>
@@ -22,7 +22,7 @@
   <g>
     <rect x="80" y="250" width="480" height="130" fill="#32302f" stroke="#504945" stroke-width="1.5"/>
     <text x="104" y="290" font-size="26" fill="#83a598">EventBus</text>
-    <text x="104" y="328" font-size="23" fill="#d5c4a1">publish(event) → subscribers</text>
+    <text x="104" y="328" font-size="23" fill="#d5c4a1">publish(event) -> subscribers</text>
     <text x="104" y="362" font-size="22" fill="#928374">topic: order.updated</text>
   </g>
   <line x1="320" y1="380" x2="320" y2="425" stroke="#928374" stroke-width="1.5" marker-end="url(#arr-dim)"/>
@@ -35,7 +35,7 @@
   </g>
   <line x1="360" y1="560" x2="360" y2="640" stroke="#fb4934" stroke-width="1.5" marker-end="url(#arr-red)"/>
   <line x1="300" y1="655" x2="420" y2="655" stroke="#fb4934" stroke-width="3"/>
-  <text x="360" y="700" font-size="23" fill="#fb4934" text-anchor="middle">5xx or timeout → return False</text>
+  <text x="360" y="700" font-size="23" fill="#fb4934" text-anchor="middle">5xx or timeout -> return False</text>
   <text x="360" y="732" font-size="22" fill="#928374" text-anchor="middle">logged at WARN; nothing re-enqueues it</text>
   <g>
     <rect x="80" y="960" width="860" height="120" fill="#32302f" stroke="#fb4934" stroke-width="1.5"/>
@@ -47,7 +47,7 @@
   <g>
     <rect x="1065" y="250" width="480" height="130" fill="#32302f" stroke="#504945" stroke-width="1.5"/>
     <text x="1089" y="290" font-size="26" fill="#83a598">EventBus</text>
-    <text x="1089" y="328" font-size="23" fill="#d5c4a1">publish(event) → subscribers</text>
+    <text x="1089" y="328" font-size="23" fill="#d5c4a1">publish(event) -> subscribers</text>
     <text x="1089" y="362" font-size="22" fill="#928374">topic: order.updated (unchanged)</text>
   </g>
   <line x1="1305" y1="380" x2="1305" y2="425" stroke="#928374" stroke-width="1.5" marker-end="url(#arr-dim)"/>
@@ -55,7 +55,7 @@
   <g>
     <rect x="1065" y="430" width="620" height="130" fill="#32302f" stroke="#504945" stroke-width="1.5"/>
     <text x="1089" y="470" font-size="26" fill="#ebdbb2">WebhookSender.deliver()</text>
-    <text x="1089" y="508" font-size="23" fill="#d5c4a1">post(...) → on failure: RetryJob.schedule()</text>
+    <text x="1089" y="508" font-size="23" fill="#d5c4a1">post(...) -> on failure: RetryJob.schedule()</text>
     <text x="1089" y="542" font-size="22" fill="#928374">attempt counter stored on the Delivery row</text>
   </g>
   <line x1="1375" y1="560" x2="1375" y2="605" stroke="#b8bb26" stroke-width="1.5" marker-end="url(#arr-green)"/>
@@ -64,7 +64,7 @@
     <rect x="1065" y="610" width="620" height="150" fill="#32302f" stroke="#b8bb26" stroke-width="2"/>
     <text x="1089" y="650" font-size="26" fill="#b8bb26">RetryJob</text>
     <text x="1089" y="690" font-size="23" fill="#d5c4a1">delay = min(300, 2 ** attempt) s, max_attempts = 8</text>
-    <text x="1089" y="726" font-size="22" fill="#928374">idempotency key = event.id → safe to redeliver</text>
+    <text x="1089" y="726" font-size="22" fill="#928374">idempotency key = event.id -> safe to redeliver</text>
   </g>
   <line x1="1375" y1="760" x2="1375" y2="805" stroke="#fe8019" stroke-width="1.5" marker-end="url(#arr-orange)"/>
   <text x="1391" y="790" font-size="22" fill="#fe8019">attempt 8 failed</text>
@@ -75,8 +75,8 @@
   </g>
   <g>
     <rect x="1065" y="960" width="860" height="120" fill="#32302f" stroke="#b8bb26" stroke-width="1.5"/>
-    <text x="1089" y="1006" font-size="26" fill="#ebdbb2">Transient outage → eventual delivery</text>
-    <text x="1089" y="1046" font-size="23" fill="#b8bb26">≤ 8 attempts over ~21 min, then dead-letter — never silent</text>
+    <text x="1089" y="1006" font-size="26" fill="#ebdbb2">Transient outage -> eventual delivery</text>
+    <text x="1089" y="1046" font-size="23" fill="#b8bb26">&lt;= 8 attempts over ~21 min, then dead-letter - never silent</text>
   </g>
 
   <text x="55" y="1172" font-size="22" fill="#928374">Does not preserve ordering: a retried event can arrive after newer events for the same subscriber.</text>
