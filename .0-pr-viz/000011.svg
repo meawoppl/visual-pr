@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#565f89"/></marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f7768e"/></marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/></marker>
+  </defs>
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #11 - v3: glyph allowlist is ASCII + Latin-1; template, examples and SPEC rewritten to it</text>
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">check_svg.py admitted U+2192, U+2212 and U+2248, and a reviewer saw three empty boxes where the meaning was;</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">now the default allowlist is ASCII + Latin-1, every rejection names its ASCII stand-in, and v3 is the new contract.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- BEFORE: checklist of what v2's allowlist promised -->
+  <g>
+    <rect x="80" y="250" width="860" height="110" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="290" font-size="26" fill="#7aa2f7">style/default.json "glyphs" (v2)</text>
+    <text x="104" y="330" font-size="23" fill="#a9b1d6">0020-007E 00A0-024F 0370-03FF 0400-04FF 2010-2027 2190-21FF 2200-22FF ...</text>
+  </g>
+  <text x="104" y="430" font-size="26" font-weight="700" fill="#f7768e">-</text>
+  <text x="144" y="430" font-size="23" fill="#a9b1d6">U+2192 arrow: allowed by 2190-21FF, drew as a box (tracking-test-bench #2084)</text>
+  <text x="104" y="490" font-size="26" font-weight="700" fill="#f7768e">-</text>
+  <text x="144" y="490" font-size="23" fill="#a9b1d6">U+2212 minus, U+2248 approx: allowed by 2200-22FF, drew as boxes</text>
+  <text x="104" y="550" font-size="26" font-weight="700" fill="#f7768e">-</text>
+  <text x="144" y="550" font-size="23" fill="#a9b1d6">SPEC.md: "characters the font stack is sure to draw: arrows, math ..."</text>
+  <text x="104" y="610" font-size="26" font-weight="700" fill="#f7768e">-</text>
+  <text x="144" y="610" font-size="23" fill="#a9b1d6">template.svg itself shipped U+2014 and U+2264 in its sample text</text>
+  <text x="104" y="670" font-size="26" font-weight="700" fill="#f7768e">-</text>
+  <text x="144" y="670" font-size="23" fill="#f7768e">"ok: palette + canvas clean, 0 warning(s)" on a file with three boxes</text>
+  <line x1="450" y1="760" x2="570" y2="760" stroke="#f7768e" stroke-width="3"/>
+  <text x="510" y="805" font-size="23" fill="#f7768e" text-anchor="middle">the list was built from font tables, not from a viewer</text>
+  <text x="510" y="837" font-size="22" fill="#565f89" text-anchor="middle">Latin-1 (U+00B1, U+00B5, U+00B7) in the same file drew fine</text>
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">A clean pass that lied; caught only because a human looked</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">the allowlist existed to prevent exactly this</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="1065" y="250" width="860" height="110" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="290" font-size="26" fill="#7aa2f7">style/*.json "glyphs" (v3, all six styles)</text>
+    <text x="1089" y="330" font-size="23" fill="#9ece6a">["0020-007E", "00A0-00FF"]  -  ASCII + Latin-1, nothing else</text>
+  </g>
+  <text x="1089" y="430" font-size="26" font-weight="700" fill="#9ece6a">+</text>
+  <text x="1129" y="430" font-size="23" fill="#a9b1d6">check_glyphs(): rejection names the stand-in via ASCII_FOR (-> &lt;= ~ - ... + x)</text>
+  <text x="1089" y="490" font-size="26" font-weight="700" fill="#9ece6a">+</text>
+  <text x="1129" y="490" font-size="23" fill="#a9b1d6">template.svg, examples/src/*.svg, tests/fixtures/valid.svg rewritten; matrix rebuilt</text>
+  <text x="1089" y="550" font-size="26" font-weight="700" fill="#9ece6a">+</text>
+  <text x="1129" y="550" font-size="23" fill="#a9b1d6">SPEC "Characters", README, style/README: what is safe and why the list is small</text>
+  <text x="1089" y="610" font-size="26" font-weight="700" fill="#9ece6a">+</text>
+  <text x="1129" y="610" font-size="23" fill="#a9b1d6">glyph-probe-latin1.svg / glyph-probe-beyond.svg: render these in YOUR viewer</text>
+  <text x="1089" y="670" font-size="26" font-weight="700" fill="#9ece6a">+</text>
+  <text x="1129" y="670" font-size="23" fill="#9ece6a">ACTION_REF:-v3, README @v3 and raw URLs; test_versioning_is_consistent</text>
+  <g>
+    <rect x="1065" y="740" width="860" height="130" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
+    <text x="1089" y="780" font-size="24" fill="#e0af68">Contract change, so a new major: v2 frozen, v3.0.0 after Matt's viewer verdict</text>
+    <text x="1089" y="816" font-size="22" fill="#a9b1d6">a passing SVG can now fail; merged visuals are never re-checked</text>
+    <text x="1089" y="848" font-size="22" fill="#565f89">repos with verified viewers widen "glyphs" in their own style JSON</text>
+  </g>
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">A pass now means the reviewer will see every character</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">and the fix for a rejection is in the error message</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">Still a curated list, not a font-file lookup: Latin-1 is kept on the evidence of one viewer plus a DejaVu render, and the probes exist so each repo can check its own.</text>
+</svg>
