@@ -56,6 +56,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read   # only needed for min-changed-lines (it reads the PR's file list)
 
 jobs:
   visual-pr:
@@ -217,7 +218,10 @@ branch, never by the PR:
   (`package-lock.json`, `yarn.lock`, `Cargo.lock`, `*.min.js`, ...). Attributes
   are read from the base checkout, so a PR cannot relabel its own files to slip
   under the bar, and an explicit `linguist-generated=false` puts a file back in
-  the count. If the API is unavailable the visual is required, never waived.
+  the count. The file list comes from the pull request API, so the workflow
+  needs `pull-requests: read` alongside `contents: read` (a `permissions:`
+  block zeroes everything it does not name). If the API is unavailable the
+  visual is required, never waived.
 
 An SVG that *is* present is always validated, escape or not.
 

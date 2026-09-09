@@ -6,6 +6,8 @@ cut with `./release.sh vX.Y.Z` — see AGENTS.md for the policy.
 
 ## Unreleased
 
+- Docs: the quick start grants `pull-requests: read`, which `min-changed-lines`
+  needs to read the PR's file list once a `permissions:` block is present.
 - Sweep: before deleting, fetch the permalink (200 + SVG bytes) and re-read
   the PR description from the API to confirm it carries the permalink; keep
   the file otherwise. `--no-verify-urls` skips the fetch for offline tests.
