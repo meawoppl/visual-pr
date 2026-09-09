@@ -35,7 +35,13 @@ admitted once and rendered as boxes on a real viewer even though the declared
 font stack nominally carries them (issue #10). The validator names the ASCII
 replacement when it rejects one (`->`, `<=`, `~`, `-`, `...`, `+`, `x`).
 Override `glyphs` in your style JSON to widen it for viewers you have verified
-(the key replaces the default list, so copy it and add).
+(the key replaces the default list, so copy it and add). For orientation: on a
+DejaVu-based stack the en/em dash, ellipsis, bullet and curly quotes
+(`2010-2027`), Greek (`0370-03FF`), Cyrillic (`0400-04FF`) and Latin
+Extended-A (`0100-017F`) drew correctly while arrows, math operators, check
+marks and shapes did not. Treat that as a floor: put the probe SVGs in
+`tests/fixtures/glyph-probe-*.svg` in front of your actual viewer before
+re-adding anything.
 
 ## Palette slots
 
