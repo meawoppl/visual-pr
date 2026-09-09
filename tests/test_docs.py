@@ -75,9 +75,9 @@ def test_readme_local_recipe_matches_action_output():
     """The URLs the README tells humans to fetch must be the ones the
     action prints to agents on failure."""
     for path in ("check_svg.py", "style/default.json"):
-        url = f"https://raw.githubusercontent.com/meawoppl/visual-pr/v2/{path}"
+        url = f"https://raw.githubusercontent.com/meawoppl/visual-pr/v3/{path}"
         assert url in README, f"README missing {url}"
-    assert 'base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v2}"' in ACTION
+    assert 'base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v3}"' in ACTION
 
 
 def test_action_emits_the_spec_and_style_on_failure():
@@ -175,11 +175,11 @@ def test_body_image_modes_are_documented_and_match_the_helper():
 
 
 def test_versioning_is_consistent():
-    assert "@v1" not in README, "README must not point consumers at the frozen v1"
-    assert "meawoppl/visual-pr@v2" in README
-    assert "${ACTION_REF:-v2}" in ACTION and "${ACTION_REF:-v1}" not in ACTION
+    assert "@v1" not in README and "@v2" not in README, "README must not point consumers at a frozen major"
+    assert "meawoppl/visual-pr@v3" in README
+    assert "${ACTION_REF:-v3}" in ACTION and "${ACTION_REF:-v2}" not in ACTION
     changelog = (ROOT / "CHANGELOG.md").read_text()
-    assert changelog.startswith("# Changelog") and "## v2.0.0" in changelog and "## v1" in changelog
+    assert changelog.startswith("# Changelog") and "## v3.0.0" in changelog and "## v2.0.0" in changelog and "## v1" in changelog
     assert "## Unreleased" in changelog, "keep an Unreleased section for the next bundle"
     assert "[CHANGELOG.md](CHANGELOG.md)" in README
 
@@ -206,7 +206,7 @@ def test_sweep_action_inputs_are_documented():
     section = README.split("## Keeping the directory small", 1)[1].split("\n## ", 1)[0]
     for name in inputs:
         assert re.search(rf"^\| `{re.escape(name)}` \|", section, flags=re.M), f"sweep input '{name}' missing from README"
-    assert "meawoppl/visual-pr/sweep@v2" in section
+    assert "meawoppl/visual-pr/sweep@v3" in section
     assert "sweep_merged.py" in section
     assert "sweep" in (ROOT / "CHANGELOG.md").read_text().split("## v2.0.0", 1)[0], "changelog (v2.1.0) mentions the sweep"
 

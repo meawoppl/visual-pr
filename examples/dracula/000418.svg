@@ -32,9 +32,9 @@
   <line x1="146" y1="330" x2="660" y2="330" stroke="#bfc7d5" stroke-width="1.5" marker-end="url(#arr-dim)"/>
   <text x="403" y="320" font-size="22" fill="#bfc7d5" text-anchor="middle">delete(k)</text>
   <line x1="406" y1="400" x2="660" y2="400" stroke="#bfc7d5" stroke-width="1.5" marker-end="url(#arr-dim)"/>
-  <text x="533" y="390" font-size="22" fill="#bfc7d5" text-anchor="middle">get(k) → miss</text>
+  <text x="533" y="390" font-size="22" fill="#bfc7d5" text-anchor="middle">get(k) -> miss</text>
   <line x1="406" y1="470" x2="880" y2="470" stroke="#bfc7d5" stroke-width="1.5" marker-end="url(#arr-dim)"/>
-  <text x="643" y="460" font-size="22" fill="#bfc7d5" text-anchor="middle">SELECT … (old row)</text>
+  <text x="643" y="460" font-size="22" fill="#bfc7d5" text-anchor="middle">SELECT ... (old row)</text>
   <line x1="406" y1="540" x2="660" y2="540" stroke="#ff5555" stroke-width="1.5" marker-end="url(#arr-red)"/>
   <text x="533" y="530" font-size="22" fill="#ff5555" text-anchor="middle">set(k, old)</text>
   <line x1="146" y1="610" x2="880" y2="610" stroke="#bfc7d5" stroke-width="1.5" marker-end="url(#arr-dim)"/>
@@ -70,13 +70,13 @@
   <line x1="1131" y1="610" x2="1645" y2="610" stroke="#50fa7b" stroke-width="1.5" marker-end="url(#arr-green)"/>
   <text x="1388" y="600" font-size="22" fill="#50fa7b" text-anchor="middle">unlock(k)</text>
   <line x1="1391" y1="680" x2="1865" y2="680" stroke="#bfc7d5" stroke-width="1.5" marker-end="url(#arr-dim)"/>
-  <text x="1628" y="670" font-size="22" fill="#bfc7d5" text-anchor="middle">SELECT … (new row)</text>
+  <text x="1628" y="670" font-size="22" fill="#bfc7d5" text-anchor="middle">SELECT ... (new row)</text>
   <line x1="1391" y1="750" x2="1645" y2="750" stroke="#50fa7b" stroke-width="1.5" marker-end="url(#arr-green)"/>
   <text x="1518" y="740" font-size="22" fill="#50fa7b" text-anchor="middle">set(k, new)</text>
   <g>
     <rect x="1065" y="810" width="860" height="100" fill="#343746" stroke="#ffb86c" stroke-width="1.5"/>
     <text x="1089" y="850" font-size="24" fill="#ffb86c">Lock is best-effort with a 5 s TTL</text>
-    <text x="1089" y="886" font-size="22" fill="#bfc7d5">CACHE_LOCK_TTL = 5 — a crashed writer cannot wedge readers</text>
+    <text x="1089" y="886" font-size="22" fill="#bfc7d5">CACHE_LOCK_TTL = 5 - a crashed writer cannot wedge readers</text>
   </g>
   <g>
     <rect x="1065" y="960" width="860" height="120" fill="#343746" stroke="#50fa7b" stroke-width="1.5"/>

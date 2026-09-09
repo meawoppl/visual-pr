@@ -11,9 +11,10 @@ styles in style/ (e.g. `nord`); omitted keys fall back to the default
 style's values.
 
 Hard errors (exit 1): unparseable XML, wrong canvas, off-palette color, a
-character outside the style's glyph allowlist (anything the font stack would
-render as a missing-glyph box: emoji, icon-font private-use glyphs, exotic
-symbol blocks, zero-width/format characters).
+character outside the style's glyph allowlist. The default allowlist is
+ASCII + Latin-1 only: arrows, math operators, dashes and check marks have
+been seen rendering as missing-glyph boxes on a real viewer (issue #10),
+so they are errors with an ASCII replacement suggested.
 Warnings (exit 0): text that looks like it overflows the canvas, crosses
 the panel divider, or overruns the box (<g> with one <rect>) it sits in;
 missing font-size; a numeric file name that isn't
@@ -285,10 +286,27 @@ def glyph_ranges(style: dict) -> list[tuple[int, int]]:
     return out
 
 
+# ASCII stand-ins for the typographic characters people reach for. Offered in
+# the error message so the fix is a copy-paste, not a lookup.
+ASCII_FOR = {
+    "\u2192": "->", "\u2190": "<-", "\u2194": "<->", "\u21d2": "=>", "\u21d0": "<=", "\u21d4": "<=>",
+    "\u2264": "<=", "\u2265": ">=", "\u2260": "!=", "\u2248": "~", "\u2212": "-", "\u00d7": "x",
+    "\u221e": "inf", "\u2211": "sum", "\u221a": "sqrt", "\u2206": "delta", "\u2202": "d",
+    "\u2013": "-", "\u2014": " - ", "\u2026": "...", "\u2022": "*", "\u00b7": "-",
+    "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"', "\u2039": "<", "\u203a": ">",
+    "\u27e8": "<", "\u27e9": ">", "\u2713": "+", "\u2714": "+", "\u2717": "x", "\u2718": "x",
+    "\u25a0": "#", "\u25cf": "o", "\u25b2": "^", "\u25bc": "v", "\u2500": "-", "\u2502": "|",
+    "\u00a0": " ",
+}
+
+
 def check_glyphs(elem: ET.Element, ranges: list[tuple[int, int]]) -> None:
     """Every rendered character must fall in an allowed range. Fonts draw
     anything else as a missing-glyph box, and no validator downstream of us
-    knows which fonts the viewer has — so the allowlist is the contract."""
+    knows which fonts the viewer has — so the allowlist is the contract. The
+    bundled default is ASCII + Latin-1: arrows, math operators, dashes and
+    check marks were observed rendering as boxes on a real viewer even though
+    the declared font stack nominally carries them (issue #10)."""
     content = "".join(elem.itertext())
     seen: set[str] = set()
     for ch in content:
@@ -300,11 +318,15 @@ def check_glyphs(elem: ET.Element, ranges: list[tuple[int, int]]) -> None:
         seen.add(ch)
         name = unicodedata.name(ch, "unassigned or private-use")
         shown = ch if unicodedata.category(ch)[0] not in "CZ" else ""
+        if ch in ASCII_FOR:
+            rep = ASCII_FOR[ch]
+            hint = f"write {rep!r} instead" + (" (as &lt; inside SVG text)" if "<" in rep else "")
+        else:
+            hint = "use an allowed character"
         errors.append(
             f"<{strip_ns(elem.tag)}> '{content.strip()[:40]}' contains U+{cp:04X} "
-            f"{shown!r} ({name}), outside the style's glyph allowlist — fonts render "
-            f"it as a missing-glyph box; use an allowed character or extend \"glyphs\" "
-            f"in the style JSON"
+            f"{shown!r} ({name}), outside the style's glyph allowlist — viewers render "
+            f"it as a missing-glyph box; {hint}, or extend \"glyphs\" in the style JSON"
         )
 
 

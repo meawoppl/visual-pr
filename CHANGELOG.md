@@ -6,6 +6,22 @@ cut with `./release.sh vX.Y.Z` — see AGENTS.md for the policy.
 
 ## Unreleased
 
+Nothing yet.
+
+## v3.0.0 — 2026-09-09
+
+**Contract change:** the default glyph allowlist is now ASCII + Latin-1 only
+(`0020-007E`, `00A0-00FF`). Arrows (`→`), math operators (`− ≤ ≥ ≠ ≈`),
+en/em dashes, ellipses, bullets, curly quotes, check marks and shapes are hard
+errors; the validator names the ASCII replacement (`->`, `<=`, `~`, `-`,
+`...`, `+`, `x`). They were admitted by v2 and rendered as missing-glyph boxes
+on a real reviewer's viewer even though the declared font stack nominally
+carries them ([#10](https://github.com/meawoppl/visual-pr/issues/10)). A
+repo whose viewers are verified can widen `glyphs` in its own style JSON.
+Template, examples and SPEC are rewritten to the new set. Merged visuals are
+never re-checked; only new PRs feel this. Everything else is v2.1.0 plus the
+items below.
+
 - Docs: the quick start grants `pull-requests: read`, which `min-changed-lines`
   needs to read the PR's file list once a `permissions:` block is present.
 - Sweep: before deleting, fetch the permalink (200 + SVG bytes) and re-read

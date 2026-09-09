@@ -36,7 +36,7 @@
   <line x1="360" y1="655" x2="360" y2="735" stroke="#bf616a" stroke-width="1.5" marker-end="url(#arr-red)"/>
   <line x1="300" y1="750" x2="420" y2="750" stroke="#bf616a" stroke-width="3"/>
   <text x="360" y="795" font-size="23" fill="#bf616a" text-anchor="middle">RSS grows ~900 B per row</text>
-  <text x="360" y="827" font-size="22" fill="#616e88" text-anchor="middle">2M rows ≈ 1.8 GB against a 2 GiB pod limit</text>
+  <text x="360" y="827" font-size="22" fill="#616e88" text-anchor="middle">2M rows ~ 1.8 GB against a 2 GiB pod limit</text>
   <g>
     <rect x="80" y="960" width="860" height="120" fill="#3b4252" stroke="#bf616a" stroke-width="1.5"/>
     <text x="104" y="1006" font-size="26" fill="#e5e9f0">OOMKilled at ~1.4M rows</text>

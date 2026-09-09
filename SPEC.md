@@ -78,12 +78,16 @@ the center divider.
 
 ## Characters
 
-Use only characters the font stack is sure to draw: ASCII, accented Latin,
-Greek and Cyrillic letters, ordinary punctuation (– — … •), arrows (→ ↔ ⇒),
-math (≤ ≥ ≠ ≈ ∑ √ ∞), check marks (✓ ✗), box-drawing and basic geometric
-shapes. No emoji, no icon-font glyphs, no zero-width characters — the
-validator rejects anything outside the style's `glyphs` allowlist as a hard
-error, because a reviewer would see a little empty box where your meaning was.
+Use only ASCII and Latin-1 (accented letters, `± µ · × ÷ ° § « »`). That is
+the whole default allowlist, and it is that small on purpose: arrows (`→`),
+math operators (`− ≤ ≈`), en/em dashes, ellipses and check marks all passed
+an earlier allowlist and then drew as empty boxes on a real reviewer's
+screen, because the viewer's font fallback did not carry them. Write `->`,
+`<=`, `~`, `-`, `...`, `+`/`x` instead (inside SVG text `<` is spelled
+`&lt;`); the validator says exactly which replacement when it rejects a
+character. A repo whose viewers are known to
+render more can widen `glyphs` in its own style JSON. No emoji, no icon-font
+glyphs, no zero-width characters, ever.
 
 ## Quality bar
 

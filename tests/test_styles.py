@@ -96,5 +96,5 @@ def test_every_style_ships_the_same_glyph_allowlist(path: pathlib.Path):
     assert glyphs == DEFAULT["glyphs"], "bundled styles differ only in palette"
     for item in glyphs:
         assert re.fullmatch(r"[0-9A-F]{4,6}(-[0-9A-F]{4,6})?", item), item
-    # ASCII and the arrow/math blocks the template itself relies on.
-    assert "0020-007E" in glyphs and "2190-21FF" in glyphs and "2200-22FF" in glyphs
+    # ASCII + Latin-1, nothing else: arrows and math operators rendered as boxes (issue #10).
+    assert glyphs == ["0020-007E", "00A0-00FF"]

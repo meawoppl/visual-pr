@@ -22,17 +22,17 @@
   <g>
     <rect x="80" y="250" width="860" height="110" fill="#eee8d5" stroke="#93a1a1" stroke-width="1.5"/>
     <text x="104" y="290" font-size="26" fill="#268bd2">UploadManifestView.post()</text>
-    <text x="104" y="330" font-size="23" fill="#657b83">json.loads(body) → enqueue(ManifestJob) with no schema check</text>
+    <text x="104" y="330" font-size="23" fill="#657b83">json.loads(body) -> enqueue(ManifestJob) with no schema check</text>
   </g>
-  <text x="104" y="430" font-size="26" font-weight="700" fill="#dc322f">–</text>
+  <text x="104" y="430" font-size="26" font-weight="700" fill="#dc322f">-</text>
   <text x="144" y="430" font-size="23" fill="#657b83">size may be negative, or a string</text>
-  <text x="104" y="490" font-size="26" font-weight="700" fill="#dc322f">–</text>
+  <text x="104" y="490" font-size="26" font-weight="700" fill="#dc322f">-</text>
   <text x="144" y="490" font-size="23" fill="#657b83">checksum never matched against a sha256 pattern</text>
-  <text x="104" y="550" font-size="26" font-weight="700" fill="#dc322f">–</text>
+  <text x="104" y="550" font-size="26" font-weight="700" fill="#dc322f">-</text>
   <text x="144" y="550" font-size="23" fill="#657b83">duplicate paths (after normpath) accepted</text>
-  <text x="104" y="610" font-size="26" font-weight="700" fill="#dc322f">–</text>
+  <text x="104" y="610" font-size="26" font-weight="700" fill="#dc322f">-</text>
   <text x="144" y="610" font-size="23" fill="#657b83">unknown content_type passes through</text>
-  <text x="104" y="670" font-size="26" font-weight="700" fill="#dc322f">–</text>
+  <text x="104" y="670" font-size="26" font-weight="700" fill="#dc322f">-</text>
   <text x="144" y="670" font-size="23" fill="#dc322f">errors surface as KeyError in ManifestWorker.run()</text>
   <line x1="450" y1="760" x2="570" y2="760" stroke="#dc322f" stroke-width="3"/>
   <text x="510" y="805" font-size="23" fill="#dc322f" text-anchor="middle">failure discovered ~3 h later, in the worker</text>
@@ -49,16 +49,16 @@
     <text x="1089" y="290" font-size="26" fill="#268bd2">UploadManifestView.post()</text>
     <text x="1089" y="330" font-size="23" fill="#657b83">validate_manifest(payload) before enqueue(ManifestJob)</text>
   </g>
-  <text x="1089" y="430" font-size="26" font-weight="700" fill="#859900">✓</text>
-  <text x="1129" y="430" font-size="23" fill="#657b83">size: int and 0 ≤ size ≤ MAX_UPLOAD_BYTES</text>
-  <text x="1089" y="490" font-size="26" font-weight="700" fill="#859900">✓</text>
+  <text x="1089" y="430" font-size="26" font-weight="700" fill="#859900">+</text>
+  <text x="1129" y="430" font-size="23" fill="#657b83">size: int and 0 &lt;= size &lt;= MAX_UPLOAD_BYTES</text>
+  <text x="1089" y="490" font-size="26" font-weight="700" fill="#859900">+</text>
   <text x="1129" y="490" font-size="23" fill="#657b83">checksum: re.fullmatch(r'[a-f0-9]{64}')</text>
-  <text x="1089" y="550" font-size="26" font-weight="700" fill="#859900">✓</text>
+  <text x="1089" y="550" font-size="26" font-weight="700" fill="#859900">+</text>
   <text x="1129" y="550" font-size="23" fill="#657b83">paths: unique after os.path.normpath()</text>
-  <text x="1089" y="610" font-size="26" font-weight="700" fill="#859900">✓</text>
+  <text x="1089" y="610" font-size="26" font-weight="700" fill="#859900">+</text>
   <text x="1129" y="610" font-size="23" fill="#657b83">content_type in ALLOWED_TYPES</text>
-  <text x="1089" y="670" font-size="26" font-weight="700" fill="#859900">✓</text>
-  <text x="1129" y="670" font-size="23" fill="#859900">any miss → raise ManifestError(field, reason)</text>
+  <text x="1089" y="670" font-size="26" font-weight="700" fill="#859900">+</text>
+  <text x="1129" y="670" font-size="23" fill="#859900">any miss -> raise ManifestError(field, reason)</text>
   <g>
     <rect x="1065" y="740" width="860" height="100" fill="#eee8d5" stroke="#cb4b16" stroke-width="1.5"/>
     <text x="1089" y="780" font-size="24" fill="#cb4b16">Legacy clients: X-Manifest-Version &lt; 2</text>
@@ -70,5 +70,5 @@
     <text x="1089" y="1046" font-size="23" fill="#859900">{"field": "checksum", "reason": "not a sha256 hex digest"}</text>
   </g>
 
-  <text x="55" y="1172" font-size="22" fill="#839496">Structural only: it does not verify the checksum against the uploaded bytes — ManifestWorker still does that later.</text>
+  <text x="55" y="1172" font-size="22" fill="#839496">Structural only: it does not verify the checksum against the uploaded bytes - ManifestWorker still does that later.</text>
 </svg>

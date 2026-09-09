@@ -150,7 +150,7 @@ runs:
         [ -n "$STYLE_FILE" ] && STYLE_ARGS=(--style "$STYLE_FILE")
         read -r -a EXTRA <<< "$EXTRA_ARGS"
 
-        BASE_URL="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v2}"
+        BASE_URL="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v3}"
         IMAGE_URL="https://raw.githubusercontent.com/${HEAD_REPO:-OWNER/REPO}/${HEAD_SHA:-HEAD_SHA}/${SVG_DIR}/${SVG_NAME}"
         emit_body_steps() {
           # $1 = step number to print. Only when the description must show the image.
@@ -169,7 +169,7 @@ runs:
 
         emit_fix_instructions() {
           local reason="$1"
-          local base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v2}"
+          local base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v3}"
           # The local command mirrors this job's arguments, minus the Starstruck
           # opt-out: an agent checking its work locally should see that request.
           local extra="" a
