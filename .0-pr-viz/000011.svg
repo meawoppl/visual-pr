@@ -8,7 +8,7 @@
   </defs>
   <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #11 - v3: glyph allowlist is ASCII + Latin-1; template, examples and SPEC rewritten to it</text>
   <text x="55" y="100" font-size="34" fill="#e6e9f5">check_svg.py admitted U+2192, U+2212 and U+2248, and a reviewer saw three empty boxes where the meaning was;</text>
-  <text x="55" y="140" font-size="34" fill="#e6e9f5">now the default allowlist is ASCII + Latin-1, every rejection names its ASCII stand-in, and v3 is the new contract.</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">now the default allowlist is ASCII + Latin-1, each rejection names its stand-in, and v3 is the contract.</text>
   <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
   <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
   <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
@@ -18,10 +18,10 @@
   <g>
     <rect x="80" y="250" width="860" height="110" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
     <text x="104" y="290" font-size="26" fill="#7aa2f7">style/default.json "glyphs" (v2)</text>
-    <text x="104" y="330" font-size="23" fill="#a9b1d6">0020-007E 00A0-024F 0370-03FF 0400-04FF 2010-2027 2190-21FF 2200-22FF ...</text>
+    <text x="104" y="330" font-size="23" fill="#a9b1d6">0020-007E 00A0-024F 0370-03FF 0400-04FF 2010-2027 2190-21FF 2200-22FF</text>
   </g>
   <text x="104" y="430" font-size="26" font-weight="700" fill="#f7768e">-</text>
-  <text x="144" y="430" font-size="23" fill="#a9b1d6">U+2192 arrow: allowed by 2190-21FF, drew as a box (tracking-test-bench #2084)</text>
+  <text x="144" y="430" font-size="23" fill="#a9b1d6">U+2192 arrow: allowed by 2190-21FF, drew as a box (ttb PR #2084)</text>
   <text x="104" y="490" font-size="26" font-weight="700" fill="#f7768e">-</text>
   <text x="144" y="490" font-size="23" fill="#a9b1d6">U+2212 minus, U+2248 approx: allowed by 2200-22FF, drew as boxes</text>
   <text x="104" y="550" font-size="26" font-weight="700" fill="#f7768e">-</text>
@@ -46,18 +46,18 @@
     <text x="1089" y="330" font-size="23" fill="#9ece6a">["0020-007E", "00A0-00FF"]  -  ASCII + Latin-1, nothing else</text>
   </g>
   <text x="1089" y="430" font-size="26" font-weight="700" fill="#9ece6a">+</text>
-  <text x="1129" y="430" font-size="23" fill="#a9b1d6">check_glyphs(): rejection names the stand-in via ASCII_FOR (-> &lt;= ~ - ... + x)</text>
+  <text x="1129" y="430" font-size="23" fill="#a9b1d6">check_glyphs(): each rejection names its stand-in (-> &lt;= ~ - ... + x)</text>
   <text x="1089" y="490" font-size="26" font-weight="700" fill="#9ece6a">+</text>
-  <text x="1129" y="490" font-size="23" fill="#a9b1d6">template.svg, examples/src/*.svg, tests/fixtures/valid.svg rewritten; matrix rebuilt</text>
+  <text x="1129" y="490" font-size="23" fill="#a9b1d6">template.svg, examples/src/*.svg, fixtures rewritten; matrix rebuilt</text>
   <text x="1089" y="550" font-size="26" font-weight="700" fill="#9ece6a">+</text>
-  <text x="1129" y="550" font-size="23" fill="#a9b1d6">SPEC "Characters", README, style/README: what is safe and why the list is small</text>
+  <text x="1129" y="550" font-size="23" fill="#a9b1d6">SPEC, README, style/README: what is safe and why the list is small</text>
   <text x="1089" y="610" font-size="26" font-weight="700" fill="#9ece6a">+</text>
-  <text x="1129" y="610" font-size="23" fill="#a9b1d6">glyph-probe-latin1.svg / glyph-probe-beyond.svg: render these in YOUR viewer</text>
+  <text x="1129" y="610" font-size="23" fill="#a9b1d6">glyph-probe-latin1.svg + glyph-probe-beyond.svg: render in your viewer</text>
   <text x="1089" y="670" font-size="26" font-weight="700" fill="#9ece6a">+</text>
   <text x="1129" y="670" font-size="23" fill="#9ece6a">ACTION_REF:-v3, README @v3 and raw URLs; test_versioning_is_consistent</text>
   <g>
     <rect x="1065" y="740" width="860" height="130" fill="#1e202e" stroke="#e0af68" stroke-width="1.5"/>
-    <text x="1089" y="780" font-size="24" fill="#e0af68">Contract change, so a new major: v2 frozen, v3.0.0 after Matt's viewer verdict</text>
+    <text x="1089" y="780" font-size="24" fill="#e0af68">Contract change, so a new major: v2 frozen, v3.0.0 after the viewer verdict</text>
     <text x="1089" y="816" font-size="22" fill="#a9b1d6">a passing SVG can now fail; merged visuals are never re-checked</text>
     <text x="1089" y="848" font-size="22" fill="#565f89">repos with verified viewers widen "glyphs" in their own style JSON</text>
   </g>
