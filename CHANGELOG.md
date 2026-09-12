@@ -27,6 +27,9 @@ descriptions are never re-checked.
   the base's after it. Omit it and any repository passes.
 - The sweep is unchanged: it still recognises branch-pinned images in merged
   descriptions, which is how it repairs them.
+- Tests: `tests/test_sweep.py` anchored "now" to a date literal while the code
+  under test reads the real clock, so the suite turned red on an untouched
+  `main` once enough days had passed. The anchor is relative now.
 
 ## v3.0.0 — 2026-09-09
 
