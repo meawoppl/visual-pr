@@ -174,6 +174,29 @@ def test_body_image_modes_are_documented_and_match_the_helper():
     assert "first|included|not-required" in ACTION
 
 
+def test_the_permalink_rule_is_stated_wherever_an_author_will_look():
+    """README, SPEC and the action's input docs must agree with the validator:
+    a full commit SHA on a GitHub host, never a branch."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("pr_body_image", ROOT / "pr_body_image.py")
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    assert mod.GITHUB_HOSTS == ("raw.githubusercontent.com", "github.com")
+    assert mod.SHA.match("0" * 40) and not mod.SHA.match("0" * 8) and not mod.SHA.match("main")
+
+    spec_md = (ROOT / "SPEC.md").read_text()
+    body_input = ACTION.split("\n  body-image:\n", 1)[1].split("\n  extra-args:\n", 1)[0]
+    for doc, name in ((README, "README.md"), (spec_md, "SPEC.md"), (body_input, "action.yml body-image")):
+        assert "40-char" in doc, f"{name} must say how long the SHA is"
+        assert "branch" in doc, f"{name} must say a branch ref is rejected"
+    # Both hosts are offered, because a private repo only renders the github.com one.
+    for host in mod.GITHUB_HOSTS:
+        assert host in README and host in body_input
+    # The placeholder every recipe prints is the one the validator accepts.
+    for doc in (README, spec_md):
+        assert "OWNER/REPO/<40-char head sha>/" in doc
+    assert "--repo" in README and "--repo" in ACTION
+
+
 def test_versioning_is_consistent():
     assert "@v1" not in README and "@v2" not in README, "README must not point consumers at a frozen major"
     assert "meawoppl/visual-pr@v3" in README

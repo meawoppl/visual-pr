@@ -10,9 +10,13 @@ and every letter, so the directory is first in the review file list; the
 fixed-width names keep the SVGs in PR order.
 
 Then put it where the reviewer looks first: the PR description opens with
-`![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<commit sha>/<svg-dir>/<n>.svg)`
-(the action's default `body-image: first` checks this; pin the SHA and update
-it when the SVG changes).
+`![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<40-char head sha>/<svg-dir>/<n>.svg)`
+(the action's default `body-image: first` checks this). The full commit SHA is
+required — a branch URL 404s once the branch is deleted at merge, and that is
+when the description becomes the PR's only record. A
+`https://github.com/OWNER/REPO/blob/<40-char head sha>/<svg-dir>/<n>.svg` URL
+also passes, and is the one that renders for readers of a private repository.
+Re-pin whenever you push a new version of the SVG.
 
 ## Rule zero: the diagram is grounded in the code
 

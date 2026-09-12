@@ -58,9 +58,11 @@ inputs:
     description: >-
       Whether the PR description must show the summary. 'first' (default):
       the description must open with an image of the SVG. 'included': the
-      image may be anywhere in it. 'not-required': skip. An image counts when
-      its URL ends with <svg-dir>/<six-digit n>.svg — raw.githubusercontent.com
-      pinned to a SHA or branch, or a blob URL with ?raw=true.
+      image may be anywhere in it. 'not-required': skip. An image counts only
+      when its URL is a GitHub permalink to <svg-dir>/<six-digit n>.svg in this
+      repository — raw.githubusercontent.com/OWNER/REPO/<40-char sha>/... or
+      github.com/OWNER/REPO/{blob,raw}/<40-char sha>/... A branch ref is
+      rejected: it 404s once the branch is deleted at merge.
     default: 'first'
   extra-args:
     description: >-
@@ -152,19 +154,32 @@ runs:
 
         BASE_URL="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v3}"
         IMAGE_URL="https://raw.githubusercontent.com/${HEAD_REPO:-OWNER/REPO}/${HEAD_SHA:-HEAD_SHA}/${SVG_DIR}/${SVG_NAME}"
+        # The permalink must name a repository that will still serve the blob:
+        # the head (where the SVG lives now) or the base (where it lives after
+        # the merge). A fork PR has two different answers, so pass both.
+        REPO_ARGS=()
+        [ -n "${HEAD_REPO:-}" ] && REPO_ARGS+=(--repo "$HEAD_REPO")
+        [ -n "${GITHUB_REPOSITORY:-}" ] && [ "${GITHUB_REPOSITORY:-}" != "${HEAD_REPO:-}" ] \
+          && REPO_ARGS+=(--repo "$GITHUB_REPOSITORY")
+        REPO_SHOW=""
+        [ ${#REPO_ARGS[@]} -gt 0 ] && REPO_SHOW=" ${REPO_ARGS[*]}"
         emit_body_steps() {
           # $1 = step number to print. Only when the description must show the image.
           local n="$1" where="anywhere in"
           [ "$BODY_IMAGE" = first ] && where="the very first line of"
           echo "${n}. Put the picture in the PR description — ${where} it:"
           echo "     ![Visual summary](${IMAGE_URL})"
-          echo "   Pin the commit SHA as above (branch URLs break once the branch is deleted)"
-          echo "   and update it whenever you push a new version of the SVG. For example:"
+          echo "   The full 40-character commit SHA is required, not a branch name: a branch"
+          echo "   URL 404s the moment the branch is deleted at merge, which is exactly when"
+          echo "   the description becomes the only record of this PR. Re-pin whenever you"
+          echo "   push a new version of the SVG. For example:"
           echo "     gh pr view ${PR_NUMBER} --json body --jq .body > /tmp/body.md   # edit, then:"
           echo "     gh pr edit ${PR_NUMBER} --body-file /tmp/body.md"
+          echo "   A github.com/.../blob/<sha>/... URL works too, and is the one that renders"
+          echo "   for readers of a private repository."
           echo "   Check it the way this job does:"
           echo "     curl -fsSLO ${BASE_URL}/pr_body_image.py"
-          echo "     gh pr view ${PR_NUMBER} --json body --jq .body | python3 pr_body_image.py --mode ${BODY_IMAGE} --svg-path ${SVG_DIR}/${SVG_NAME}"
+          echo "     gh pr view ${PR_NUMBER} --json body --jq .body | python3 pr_body_image.py --mode ${BODY_IMAGE} --svg-path ${SVG_DIR}/${SVG_NAME}${REPO_SHOW}"
         }
 
         emit_fix_instructions() {
@@ -280,7 +295,7 @@ runs:
         echo "Visual summary present and valid: ${SVG_DIR}/${SVG_NAME}"
 
         if [ "$BODY_IMAGE" != not-required ]; then
-          if ! VERDICT="$(printf '%s' "$PR_BODY" | python3 "${ACTION_PATH}/pr_body_image.py" --mode "$BODY_IMAGE" --svg-path "${SVG_DIR}/${SVG_NAME}")"; then
+          if ! VERDICT="$(printf '%s' "$PR_BODY" | python3 "${ACTION_PATH}/pr_body_image.py" --mode "$BODY_IMAGE" --svg-path "${SVG_DIR}/${SVG_NAME}" "${REPO_ARGS[@]}")"; then
             {
               echo "=================================================================="
               echo "VISUAL PR CHECK FAILED: ${VERDICT}"
