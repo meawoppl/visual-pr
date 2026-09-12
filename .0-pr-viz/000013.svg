@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#565f89"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/>
+    </marker>
+  </defs>
+
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #0013 · Anchor the sweep tests to the clock they are tested against</text>
+
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">test_sweep.py froze "now" at a date literal while sweep_merged.py reads the real</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">clock, so three tests failed on an untouched main; the anchor is relative now.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- ==================== BEFORE ==================== -->
+  <g>
+    <rect x="80" y="250" width="860" height="130" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="292" font-size="26" fill="#7aa2f7">tests/test_sweep.py</text>
+    <text x="104" y="332" font-size="23" fill="#a9b1d6">NOW = dt.datetime(2026, 9, 7, 12, 0, tzinfo=dt.timezone.utc)</text>
+    <text x="104" y="364" font-size="22" fill="#565f89">pr(412, 2) is merged 2026-09-05, and stays there</text>
+  </g>
+
+  <line x1="510" y1="380" x2="510" y2="432" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+  <text x="526" y="415" font-size="22" fill="#565f89">compared against</text>
+
+  <g>
+    <rect x="80" y="450" width="860" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="492" font-size="26" fill="#7aa2f7">sweep_merged.py:209</text>
+    <text x="104" y="532" font-size="23" fill="#a9b1d6">now = dt.datetime.now(dt.timezone.utc)</text>
+    <text x="104" y="564" font-size="22" fill="#565f89">the real clock, which does not stop</text>
+  </g>
+
+  <text x="80" y="638" font-size="23" fill="#c0caf5">so the fixture's age drifts one day per day:</text>
+
+  <text x="104" y="686" font-size="22" fill="#a9b1d6">2026-09-07: #412 is 2 days old, under --keep-days 7</text>
+  <text x="936" y="686" font-size="22" fill="#565f89" text-anchor="end">kept</text>
+
+  <text x="104" y="726" font-size="22" fill="#a9b1d6">2026-09-12: #412 is 7 days old, over --keep-days 7</text>
+  <text x="936" y="726" font-size="22" fill="#f7768e" text-anchor="end">swept</text>
+
+  <line x1="104" y1="756" x2="936" y2="756" stroke="#3d4666" stroke-width="1"/>
+  <text x="104" y="798" font-size="22" fill="#565f89">3 of 4 fixture PRs sweep instead of 2; every assertion downstream shifts</text>
+
+  <g>
+    <rect x="80" y="960" width="860" height="120" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="1006" font-size="26" fill="#c0caf5">3 failed, 239 passed -- with no commit to blame</text>
+    <text x="104" y="1046" font-size="23" fill="#f7768e">red on main the morning after a green merge</text>
+  </g>
+
+  <!-- ==================== AFTER ==================== -->
+  <g>
+    <rect x="1065" y="250" width="860" height="130" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="292" font-size="26" fill="#9ece6a">tests/test_sweep.py</text>
+    <text x="1089" y="332" font-size="23" fill="#a9b1d6">NOW = dt.datetime.now(dt.timezone.utc)</text>
+    <text x="1089" y="364" font-size="22" fill="#565f89">pr(412, 2) is always 2 days old, whenever it runs</text>
+  </g>
+
+  <line x1="1495" y1="380" x2="1495" y2="432" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <text x="1511" y="415" font-size="22" fill="#565f89">one clock, shared</text>
+
+  <g>
+    <rect x="1065" y="450" width="860" height="130" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="1089" y="492" font-size="26" fill="#7aa2f7">sweep_merged.py:209</text>
+    <text x="1089" y="532" font-size="23" fill="#a9b1d6">now = dt.datetime.now(dt.timezone.utc)</text>
+    <text x="1089" y="564" font-size="22" fill="#565f89">unchanged; the fixture moved to meet it</text>
+  </g>
+
+  <text x="1065" y="638" font-size="23" fill="#c0caf5">tests/test_sweep.py, run under a shifted clock:</text>
+
+  <text x="1089" y="686" font-size="22" fill="#a9b1d6">now + 0 days, + 31 days</text>
+  <text x="1921" y="686" font-size="22" fill="#9ece6a" text-anchor="end">16 passed</text>
+
+  <text x="1089" y="726" font-size="22" fill="#a9b1d6">now + 200 days, + 1000 days</text>
+  <text x="1921" y="726" font-size="22" fill="#9ece6a" text-anchor="end">16 passed</text>
+
+  <line x1="1089" y1="756" x2="1921" y2="756" stroke="#3d4666" stroke-width="1"/>
+  <text x="1089" y="798" font-size="22" fill="#565f89">NOW is read once at import, so two pr() calls with one age still compare equal</text>
+
+  <g>
+    <rect x="1065" y="960" width="860" height="120" fill="#1e202e" stroke="#9ece6a" stroke-width="1.5"/>
+    <text x="1089" y="1006" font-size="26" fill="#c0caf5">242 passed, on any day you run it</text>
+    <text x="1089" y="1046" font-size="23" fill="#9ece6a">the suite measures the sweep, not the calendar</text>
+  </g>
+
+  <text x="55" y="1172" font-size="22" fill="#565f89">Tests only: sweep_merged.py is untouched, and no consumer behavior changes. select_for_sweep() was always passed its "now" and was never affected.</text>
+</svg>

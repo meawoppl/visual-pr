@@ -30,7 +30,11 @@ def sw():
     return load()
 
 
-NOW = dt.datetime(2026, 9, 7, 12, 0, tzinfo=dt.timezone.utc)
+# Relative to the real clock, not a literal: the tests that shell out to
+# sweep_merged.py compare these merge dates against *its* idea of now, so a
+# frozen anchor silently expires. Evaluated once at import so that two pr()
+# calls with the same days_ago compare equal.
+NOW = dt.datetime.now(dt.timezone.utc)
 
 
 def pr(n, days_ago, **extra):
