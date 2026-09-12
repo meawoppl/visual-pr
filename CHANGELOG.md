@@ -6,7 +6,27 @@ cut with `./release.sh vX.Y.Z` — see AGENTS.md for the policy.
 
 ## Unreleased
 
-Nothing yet.
+**Contract change — cut this as v4.** The PR description's image of the summary
+must now be a GitHub *permalink*: a full 40-character commit SHA, naming the
+PR's head or base repository, on `raw.githubusercontent.com/OWNER/REPO/<sha>/...`
+or `github.com/OWNER/REPO/{blob,raw}/<sha>/...`. A branch ref is a hard failure.
+It used to pass, and the resulting link 404s the moment the branch is deleted at
+merge — the moment the description becomes the PR's only record of the picture,
+because the sweep has taken the file out of the working tree. A
+`blob/<branch>/...` URL whose branch name contains a slash never resolved at
+all: GitHub cannot tell where the ref ends and the path begins. Both hosts are
+accepted because on a private repository only a `github.com` URL carries the
+reader's session. Only PRs opened after the tag moves feel this; merged
+descriptions are never re-checked.
+
+- The failure now names what is wrong with the URL you wrote — the branch it is
+  pinned to, the repository it points at, or that it is not a GitHub URL — and
+  says whether the link is already broken or merely about to be.
+- `pr_body_image.py` takes a repeatable `--repo OWNER/REPO`; the action passes
+  the PR's head and base, so a fork's permalink is accepted before the merge and
+  the base's after it. Omit it and any repository passes.
+- The sweep is unchanged: it still recognises branch-pinned images in merged
+  descriptions, which is how it repairs them.
 
 ## v3.0.0 — 2026-09-09
 

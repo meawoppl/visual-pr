@@ -125,7 +125,7 @@ HOW TO FIX — instructions for the agent preparing this PR
    The bar is exit code 0 with no 'ERROR:' lines. ...
 
 5. Put the picture in the PR description — the very first line of it:
-     ![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<head sha>/.0-pr-viz/000412.svg)
+     ![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<40-char head sha>/.0-pr-viz/000412.svg)
    ...
 
 REPO-SPECIFIC INSTRUCTIONS:
@@ -185,23 +185,44 @@ description is zero. So by default (`body-image: first`) the check also
 requires the description to *open* with an image of the summary:
 
 ```markdown
-![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<commit sha>/.0-pr-viz/000412.svg)
+![Visual summary](https://raw.githubusercontent.com/OWNER/REPO/<40-char head sha>/.0-pr-viz/000412.svg)
 ```
 
-Any Markdown or HTML image whose URL ends with the SVG's repo path counts, so a
-raw URL pinned to a SHA or a branch, or a blob URL with `?raw=true`, all work.
-Pin the commit SHA: it survives merge and branch deletion, while a branch URL
-breaks when the branch goes. Update it when you push a new SVG. Leading blank
-lines and HTML comments (a PR template's, say) are skipped, and the image may
-be wrapped in a link. `included` accepts the image anywhere in the description;
-`not-required` turns the check off. Listen for the `edited` pull request event,
-as the quick start does, so fixing the description re-runs the check without a
-push. The failure output prints the exact line to add and the `gh pr edit`
-call to add it. `pr_body_image.py` performs the check and runs locally:
+The URL must be a **permalink**: a full 40-character commit SHA, in this
+repository, on either host GitHub serves blobs from.
+
+```
+https://raw.githubusercontent.com/OWNER/REPO/<40-char sha>/.0-pr-viz/000412.svg
+https://github.com/OWNER/REPO/blob/<40-char sha>/.0-pr-viz/000412.svg
+https://github.com/OWNER/REPO/raw/<40-char sha>/.0-pr-viz/000412.svg
+```
+
+A branch ref is rejected. It resolves while the PR is open and 404s the moment
+the branch is deleted at merge — which is exactly when the description becomes
+the only surviving record of the PR, since the sweep takes the file out of the
+working tree. Worse, `blob/<branch>/...` never resolves at all when the branch
+name contains a slash (`docs/my-feature`), because GitHub cannot tell where the
+ref ends and the path begins. Both hosts are accepted because on a **private**
+repository only a `github.com` URL carries the reader's session. Re-pin the SHA
+when you push a new version of the SVG.
+
+Any Markdown or HTML image counts. Leading blank lines and HTML comments (a PR
+template's, say) are skipped, and the image may be wrapped in a link.
+`included` accepts the image anywhere in the description; `not-required` turns
+the check off. Listen for the `edited` pull request event, as the quick start
+does, so fixing the description re-runs the check without a push. The failure
+output names what is wrong with the URL you used, prints the exact line to add
+and the `gh pr edit` call to add it. `pr_body_image.py` performs the check and
+runs locally:
 
 ```bash
-gh pr view 412 --json body --jq .body | python3 pr_body_image.py --mode first --svg-path .0-pr-viz/000412.svg
+gh pr view 412 --json body --jq .body \
+  | python3 pr_body_image.py --mode first --svg-path .0-pr-viz/000412.svg --repo OWNER/REPO
 ```
+
+`--repo` is repeatable and optional: the action passes the PR's head and base
+repositories, so a fork's permalink is accepted before the merge and the base's
+after it. Omit it to accept a permalink to any repository.
 
 ### Escapes
 

@@ -252,6 +252,46 @@ def test_body_image_included_accepts_anywhere(run_action):
     assert "anywhere in it:" in summary
 
 
+BRANCH_URL = "https://raw.githubusercontent.com/acme/widgets/feature-x/tests/fixtures/valid.svg"
+
+
+def test_body_image_rejects_a_branch_url_and_says_why(run_action):
+    """The failure mode that rotted four real PRs: green while open, 404 after merge."""
+    rc, out, summary = run_action(BODY_IMAGE="first", PR_BODY=f"![Visual summary]({BRANCH_URL})")
+    assert rc == 1
+    assert outcome(run_action) == "body-image-missing"
+    assert "pinned to 'feature-x', not a 40-character commit SHA" in out
+    assert "404s once the branch is deleted at merge" in out
+    assert f"![Visual summary]({RAW_VALID})" in summary, "recipe prints the permalink to use instead"
+    assert "The full 40-character commit SHA is required, not a branch name" in summary
+
+
+def test_body_image_rejects_another_repos_permalink(run_action):
+    other = RAW_VALID.replace("acme/widgets", "someone/else")
+    rc, out, _ = run_action(BODY_IMAGE="first", PR_BODY=f"![Visual summary]({other})")
+    assert rc == 1 and "points at someone/else, not acme/widgets" in out
+    assert outcome(run_action) == "body-image-missing"
+
+
+def test_body_image_accepts_a_fork_head_or_the_base(run_action):
+    """A fork PR serves the SVG from the fork now and from the base after merge."""
+    fork = RAW_VALID.replace("acme/widgets", "contributor/widgets")
+    for url in (fork, RAW_VALID):
+        rc, out, _ = run_action(BODY_IMAGE="first", HEAD_REPO="contributor/widgets",
+                                PR_BODY=f"![Visual summary]({url})")
+        assert rc == 0, out
+    rc, out, summary = run_action(BODY_IMAGE="first", HEAD_REPO="contributor/widgets",
+                                  PR_BODY="![Visual summary](https://example.com/tests/fixtures/valid.svg)")
+    assert rc == 1 and "not a GitHub permalink" in out
+    assert "--repo contributor/widgets --repo acme/widgets" in summary, "recipe mirrors the job's arguments"
+
+
+def test_body_image_accepts_a_blob_permalink_for_private_repo_readers(run_action):
+    blob = f"https://github.com/acme/widgets/blob/{'0123abcd' * 5}/tests/fixtures/valid.svg?raw=true"
+    rc, out, _ = run_action(BODY_IMAGE="first", PR_BODY=f"![Visual summary]({blob})")
+    assert rc == 0, out
+
+
 def test_body_image_not_required_skips_and_missing_svg_recipe_gets_step_5(run_action):
     rc, out, _ = run_action(BODY_IMAGE="not-required", PR_BODY="")
     assert rc == 0 and "PR description" not in out
