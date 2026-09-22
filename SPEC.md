@@ -16,7 +16,9 @@ required — a branch URL 404s once the branch is deleted at merge, and that is
 when the description becomes the PR's only record. A
 `https://github.com/OWNER/REPO/blob/<40-char head sha>/<svg-dir>/<n>.svg` URL
 also passes, and is the one that renders for readers of a private repository.
-Re-pin whenever you push a new version of the SVG.
+The action then asks GitHub whether that commit really serves the file you
+committed: a mistyped or unpushed SHA fails, and so does one pinned to an
+older version of the SVG. Re-pin whenever you push a new version of the SVG.
 
 ## Rule zero: the diagram is grounded in the code
 

@@ -206,6 +206,16 @@ ref ends and the path begins. Both hosts are accepted because on a **private**
 repository only a `github.com` URL carries the reader's session. Re-pin the SHA
 when you push a new version of the SVG.
 
+A well-formed permalink is then **looked up**: the action asks the GitHub API
+(`repos/OWNER/REPO/contents/<path>?ref=<sha>`, with the job's token, so private
+repositories work) whether that commit serves the file, and compares the blob
+it finds with the SVG it just validated. A mistyped or never-pushed SHA fails
+(it 404s today and forever), and so does a SHA whose version of the SVG is not
+the one at the PR's head: reviewers would open the PR to a stale picture.
+Older commits that carry the identical file pass, so pushing more commits after
+the SVG does not force a re-pin. Only a definite 404 fails the check; an API
+outage passes on the URL's shape, with a warning in the log.
+
 Any Markdown or HTML image counts. Leading blank lines and HTML comments (a PR
 template's, say) are skipped, and the image may be wrapped in a link.
 `included` accepts the image anywhere in the description; `not-required` turns
@@ -218,7 +228,14 @@ runs locally:
 ```bash
 gh pr view 412 --json body --jq .body \
   | python3 pr_body_image.py --mode first --svg-path .0-pr-viz/000412.svg --repo OWNER/REPO
+# then, as the job does, confirm the pinned commit serves this exact file:
+gh api repos/OWNER/REPO/contents/.0-pr-viz/000412.svg?ref=<40-char sha> --jq .sha   # must equal:
+git hash-object .0-pr-viz/000412.svg
 ```
+
+`pr_body_image.py` itself is offline and judges only the URL's shape; with
+`--print-pin` it adds a `pin: OWNER/REPO <sha>` line naming the permalink it
+accepted, which is what the action feeds to the lookup above.
 
 `--repo` is repeatable and optional: the action passes the PR's head and base
 repositories, so a fork's permalink is accepted before the merge and the base's

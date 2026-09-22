@@ -22,6 +22,16 @@ descriptions are never re-checked.
 - The failure now names what is wrong with the URL you wrote — the branch it is
   pinned to, the repository it points at, or that it is not a GitHub URL — and
   says whether the link is already broken or merely about to be.
+- A well-formed permalink is also **looked up** before it passes
+  ([#15](https://github.com/meawoppl/visual-pr/issues/15)): the action asks the
+  GitHub API whether that commit serves the file, and that the blob is the very
+  SVG it just validated. A mistyped or never-pushed SHA used to pass and 404
+  forever; a SHA pinned to an older version of the SVG used to pass and show
+  reviewers a stale picture. Both fail now, with the head SHA to re-pin to.
+  Older commits carrying the identical file still pass. Only a definite 404
+  fails; an API outage passes on shape with a warning. The failure recipe
+  prints the `gh api ... --jq .sha` / `git hash-object` pair to check locally,
+  and `pr_body_image.py --print-pin` reports the permalink it accepted.
 - `pr_body_image.py` takes a repeatable `--repo OWNER/REPO`; the action passes
   the PR's head and base, so a fork's permalink is accepted before the merge and
   the base's after it. Omit it and any repository passes.

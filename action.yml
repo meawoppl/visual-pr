@@ -62,7 +62,10 @@ inputs:
       when its URL is a GitHub permalink to <svg-dir>/<six-digit n>.svg in this
       repository — raw.githubusercontent.com/OWNER/REPO/<40-char sha>/... or
       github.com/OWNER/REPO/{blob,raw}/<40-char sha>/... A branch ref is
-      rejected: it 404s once the branch is deleted at merge.
+      rejected: it 404s once the branch is deleted at merge. The permalink is
+      then looked up through the GitHub API: it must serve the very file this
+      job validated, so a mistyped or unpushed SHA, or one pinned to an older
+      version of the SVG, fails too.
     default: 'first'
   extra-args:
     description: >-
@@ -177,9 +180,12 @@ runs:
           echo "     gh pr edit ${PR_NUMBER} --body-file /tmp/body.md"
           echo "   A github.com/.../blob/<sha>/... URL works too, and is the one that renders"
           echo "   for readers of a private repository."
-          echo "   Check it the way this job does:"
+          echo "   Check it the way this job does — the URL's shape, then that the commit"
+          echo "   really serves this exact file (a mistyped or unpushed SHA 404s forever):"
           echo "     curl -fsSLO ${BASE_URL}/pr_body_image.py"
           echo "     gh pr view ${PR_NUMBER} --json body --jq .body | python3 pr_body_image.py --mode ${BODY_IMAGE} --svg-path ${SVG_DIR}/${SVG_NAME}${REPO_SHOW}"
+          echo "     gh api repos/${HEAD_REPO:-OWNER/REPO}/contents/${SVG_DIR}/${SVG_NAME}?ref=${HEAD_SHA:-HEAD_SHA} --jq .sha   # must equal:"
+          echo "     git hash-object ${SVG_DIR}/${SVG_NAME}"
         }
 
         emit_fix_instructions() {
@@ -294,25 +300,57 @@ runs:
 
         echo "Visual summary present and valid: ${SVG_DIR}/${SVG_NAME}"
 
+        body_image_failed() {
+          # $1 = the verdict. The SVG is fine; only the description is wrong.
+          {
+            echo "=================================================================="
+            echo "VISUAL PR CHECK FAILED: $1"
+            echo "=================================================================="
+            echo
+            echo "The SVG itself is present and valid. Reviewers should see it before"
+            echo "anything else, so the description has to carry it (body-image=${BODY_IMAGE})."
+            echo
+            emit_body_steps 1
+            echo
+            echo "Editing the description re-runs this check if the workflow listens for"
+            echo "the 'edited' pull request event; otherwise push any commit."
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "::error::$1 — see the job log/summary for the exact line to add."
+          outcome body-image-missing
+          exit 1
+        }
+
         if [ "$BODY_IMAGE" != not-required ]; then
-          if ! VERDICT="$(printf '%s' "$PR_BODY" | python3 "${ACTION_PATH}/pr_body_image.py" --mode "$BODY_IMAGE" --svg-path "${SVG_DIR}/${SVG_NAME}" "${REPO_ARGS[@]}")"; then
-            {
-              echo "=================================================================="
-              echo "VISUAL PR CHECK FAILED: ${VERDICT}"
-              echo "=================================================================="
-              echo
-              echo "The SVG itself is present and valid. Reviewers should see it before"
-              echo "anything else, so the description has to carry it (body-image=${BODY_IMAGE})."
-              echo
-              emit_body_steps 1
-              echo
-              echo "Editing the description re-runs this check if the workflow listens for"
-              echo "the 'edited' pull request event; otherwise push any commit."
-            } | tee -a "$GITHUB_STEP_SUMMARY"
-            echo "::error::${VERDICT} — see the job log/summary for the exact line to add."
-            outcome body-image-missing
-            exit 1
+          if ! REPORT="$(printf '%s' "$PR_BODY" | python3 "${ACTION_PATH}/pr_body_image.py" --mode "$BODY_IMAGE" --svg-path "${SVG_DIR}/${SVG_NAME}" --print-pin "${REPO_ARGS[@]}")"; then
+            body_image_failed "$REPORT"
           fi
-          echo "$VERDICT"
+          VERDICT="${REPORT%%$'\n'*}"
+          PIN="${REPORT#*pin: }"
+          # The URL has the right shape; now ask GitHub whether that commit
+          # really serves the file. A mistyped or never-pushed SHA passes the
+          # shape test and 404s forever (visual-pr#15) — and a commit that has
+          # an older version of the SVG shows reviewers a picture that is not
+          # the one this job just validated. `gh api` carries the job's token,
+          # so this works where a bare fetch of raw.githubusercontent would not.
+          if [ "$PIN" != "$REPORT" ]; then
+            PIN_REPO="${PIN% *}"; PIN_SHA="${PIN#* }"
+            PIN_URL="https://raw.githubusercontent.com/${PIN_REPO}/${PIN_SHA}/${SVG_DIR}/${SVG_NAME}"
+            GH_ERR="$(mktemp)"
+            if PIN_BLOB="$(gh api "repos/${PIN_REPO}/contents/${SVG_DIR}/${SVG_NAME}?ref=${PIN_SHA}" --jq .sha 2>"$GH_ERR")"; then
+              HEAD_BLOB="$(git hash-object "$FILE")"
+              if [ "$PIN_BLOB" != "$HEAD_BLOB" ]; then
+                body_image_failed "PR description image is pinned to ${PIN_SHA:0:8}, which has an older ${SVG_DIR}/${SVG_NAME} than this PR's head (blob ${PIN_BLOB:0:8}, head has ${HEAD_BLOB:0:8}); re-pin to ${HEAD_SHA:-the head SHA}"
+              fi
+              echo "${VERDICT}; ${PIN_REPO}@${PIN_SHA:0:8} serves the validated file"
+            elif grep -q "404" "$GH_ERR"; then
+              body_image_failed "PR description image 404s: ${PIN_REPO} has no ${SVG_DIR}/${SVG_NAME} at commit ${PIN_SHA} (${PIN_URL}) — the commit was never pushed there, or the file was not in it; re-pin to ${HEAD_SHA:-the head SHA}"
+            else
+              echo "::warning::Could not verify that ${PIN_URL} serves the SVG ($(tr '\n' ' ' <"$GH_ERR")); accepting it on shape alone."
+              echo "$VERDICT"
+            fi
+            rm -f "$GH_ERR"
+          else
+            echo "$VERDICT"
+          fi
         fi
         outcome passed
