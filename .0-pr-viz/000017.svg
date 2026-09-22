@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1200"
+     font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif">
+  <rect x="0" y="0" width="2000" height="1200" fill="#16161e"/>
+
+  <defs>
+    <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#565f89"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ece6a"/>
+    </marker>
+  </defs>
+
+  <!-- Header -->
+  <text x="55" y="52" font-size="24" letter-spacing="1" fill="#565f89">PR #0017 · v4.0.0: description permalinks are verified against GitHub, not just shaped</text>
+
+  <!-- Thesis -->
+  <text x="55" y="100" font-size="34" fill="#e6e9f5">main has carried a contract change since #12 that no consumer can see, because</text>
+  <text x="55" y="140" font-size="34" fill="#e6e9f5">only a tag moves; this PR names it v4.0.0 so release.sh can cut it and move v4.</text>
+  <line x1="55" y1="165" x2="1945" y2="165" stroke="#3d4666" stroke-width="1"/>
+
+  <text x="55" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#f7768e">BEFORE</text>
+  <text x="1040" y="212" font-size="22" font-weight="700" letter-spacing="4" fill="#9ece6a">AFTER</text>
+  <line x1="1000" y1="190" x2="1000" y2="1135" stroke="#3d4666" stroke-width="1.5" stroke-dasharray="2 6"/>
+
+  <!-- ==================== BEFORE ==================== -->
+  <g>
+    <rect x="80" y="250" width="860" height="150" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="292" font-size="26" fill="#c0caf5">CHANGELOG.md</text>
+    <text x="104" y="332" font-size="23" fill="#a9b1d6">## Unreleased  --  "Contract change: cut this as v4"  (#12, #16)</text>
+    <text x="104" y="368" font-size="22" fill="#565f89">release.sh refuses: no "## vX.Y.Z" section to publish as notes</text>
+  </g>
+
+  <line x1="510" y1="400" x2="510" y2="462" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+
+  <g>
+    <rect x="80" y="470" width="860" height="230" fill="#1e202e" stroke="#3d4666" stroke-width="1.5"/>
+    <text x="104" y="512" font-size="26" fill="#c0caf5">contract references still say v3</text>
+    <text x="104" y="552" font-size="23" fill="#7aa2f7">action.yml     ${ACTION_REF:-v3}  (the recipe's curl URLs)</text>
+    <text x="104" y="590" font-size="23" fill="#7aa2f7">README.md      uses: meawoppl/visual-pr@v3, .../sweep@v3, raw .../v3/</text>
+    <text x="104" y="628" font-size="23" fill="#7aa2f7">test_docs.py   test_versioning_is_consistent asserts @v3</text>
+    <text x="104" y="666" font-size="22" fill="#565f89">release.sh v4.0.0 would die on each of these checks in turn</text>
+  </g>
+
+  <line x1="510" y1="700" x2="510" y2="762" stroke="#565f89" stroke-width="1.5" marker-end="url(#arr-dim)"/>
+
+  <g>
+    <rect x="80" y="770" width="860" height="150" fill="#1e202e" stroke="#f7768e" stroke-width="1.5"/>
+    <text x="104" y="812" font-size="26" fill="#f7768e">every @v3 consumer still runs the shape-only check</text>
+    <text x="104" y="852" font-size="23" fill="#a9b1d6">agent-portal, focalplane, tracking-test-bench, ... : a phantom SHA</text>
+    <text x="104" y="888" font-size="23" fill="#a9b1d6">or a branch URL in the description is green today (#15)</text>
+  </g>
+
+  <text x="80" y="980" font-size="22" fill="#a9b1d6">Moving v3 onto main instead would be the v1 mistake again:</text>
+  <text x="80" y="1014" font-size="22" fill="#f7768e">passing PRs on every @v3 consumer would start failing with no tag change.</text>
+
+  <!-- ==================== AFTER ==================== -->
+  <g>
+    <rect x="1065" y="250" width="860" height="150" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="292" font-size="26" fill="#c0caf5">CHANGELOG.md</text>
+    <text x="1089" y="332" font-size="23" fill="#9ece6a">## v4.0.0 -- 2026-09-22   (the #12 + #16 section, renamed)</text>
+    <text x="1089" y="368" font-size="22" fill="#565f89">a fresh, empty ## Unreleased above it for the next bundle</text>
+  </g>
+
+  <line x1="1495" y1="400" x2="1495" y2="462" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <g>
+    <rect x="1065" y="470" width="860" height="230" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="512" font-size="26" fill="#c0caf5">contract references say v4, in the same PR</text>
+    <text x="1089" y="552" font-size="23" fill="#7aa2f7">action.yml     ${ACTION_REF:-v4}</text>
+    <text x="1089" y="590" font-size="23" fill="#7aa2f7">README.md      uses: meawoppl/visual-pr@v4, .../sweep@v4, raw .../v4/</text>
+    <text x="1089" y="628" font-size="23" fill="#7aa2f7">test_docs.py   asserts @v4 and that @v1, @v2, @v3 are gone from README</text>
+    <text x="1089" y="666" font-size="22" fill="#565f89">README's Versioning: v4 moves, v3 is frozen on the shape-only contract</text>
+  </g>
+
+  <line x1="1495" y1="700" x2="1495" y2="762" stroke="#9ece6a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <g>
+    <rect x="1065" y="770" width="860" height="150" fill="#1e202e" stroke="#9ece6a" stroke-width="2"/>
+    <text x="1089" y="812" font-size="26" fill="#9ece6a">./release.sh v4.0.0 after the merge</text>
+    <text x="1089" y="852" font-size="23" fill="#a9b1d6">tags v4.0.0, moves v4, verifies the raw URLs at v4, publishes the</text>
+    <text x="1089" y="888" font-size="23" fill="#a9b1d6">release with this section as notes; consumers move to @v4 by PR</text>
+  </g>
+
+  <text x="1065" y="980" font-size="22" fill="#a9b1d6">Nothing changes for @v3 consumers until their own workflow says @v4;</text>
+  <text x="1065" y="1014" font-size="22" fill="#9ece6a">v3 stays exactly where it is, and never moves again.</text>
+
+  <!-- Footer -->
+  <text x="55" y="1172" font-size="22" fill="#565f89">Merging this PR moves no tag; the tag moves only when release.sh runs from a clean main. Consumer upgrades are separate PRs in their repos.</text>
+</svg>
