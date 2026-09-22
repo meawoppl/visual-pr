@@ -198,3 +198,38 @@ def test_cli_exit_codes():
     assert r.returncode == 0
     r = run("x", "--mode", "sometimes")
     assert r.returncode == 2
+
+
+# ---- the accepted permalink is reported so the action can verify it -----------
+
+
+def test_accepted_reports_the_pin_the_verdict_rests_on(m):
+    assert m.accepted(f"![s]({RAW})", SVG, "first")[2] == (REPO, SHA)
+    assert m.accepted(f"text\n\n![s]({BLOB})", SVG, "included")[2] == (REPO, SHA)
+    # The first sound image wins in 'included'; the opening one in 'first'.
+    other = RAW.replace(SHA, "fedcba98" * 5)
+    assert m.accepted(f"![a]({other})\n![b]({RAW})", SVG, "included")[2] == (REPO, "fedcba98" * 5)
+    assert m.accepted(f"![a]({other})\n![b]({RAW})", SVG, "first")[2] == (REPO, "fedcba98" * 5)
+
+
+def test_accepted_normalises_the_sha_and_has_no_pin_when_unsatisfied(m):
+    upper = RAW.replace(SHA, SHA.upper())
+    assert m.accepted(f"![s]({upper})", SVG, "first")[2] == (REPO, SHA)
+    assert m.accepted("no picture", SVG, "first")[2] is None
+    assert m.accepted(f"![s]({RAW.replace(SHA, 'main')})", SVG, "first")[2] is None
+    assert m.accepted("", SVG, "not-required") == (True, "PR description image not required", None)
+
+
+def test_cli_print_pin_adds_one_line_only_on_success():
+    def run(body, *args):
+        return subprocess.run([sys.executable, str(SCRIPT), "--svg-path", SVG, *args],
+                              input=body, capture_output=True, text=True)
+    r = run(f"![s]({RAW})", "--print-pin", "--repo", REPO)
+    assert r.returncode == 0
+    assert r.stdout.splitlines() == [f"PR description opens with an image of {SVG}", f"pin: {REPO} {SHA}"]
+    r = run(f"![s]({RAW})")
+    assert r.stdout.splitlines() == [f"PR description opens with an image of {SVG}"], "opt-in only"
+    r = run(f"![s]({RAW.replace(SHA, 'main')})", "--print-pin")
+    assert r.returncode == 1 and len(r.stdout.splitlines()) == 1
+    r = run("", "--print-pin", "--mode", "not-required")
+    assert r.returncode == 0 and r.stdout.splitlines() == ["PR description image not required"]

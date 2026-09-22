@@ -34,8 +34,9 @@ def workspace(tmp_path):
 
 @pytest.fixture
 def fake_gh(tmp_path):
-    """A `gh` that answers `gh api ... pulls/N/files --jq .[]` from a JSON file
-    we control, and fails for any PR number it has no answer for."""
+    """A `gh` that answers `gh api ... pulls/N/files --jq .[]` and
+    `gh api repos/O/R/contents/PATH?ref=SHA --jq .sha` from files we control
+    (each holds what the real jq would print), and 404s anything else."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     answers = tmp_path / "gh-answers"
@@ -44,22 +45,46 @@ def fake_gh(tmp_path):
     gh.write_text(
         "#!/usr/bin/env bash\n"
         f'ANS="{answers}"\n'
-        'for a in "$@"; do case "$a" in repos/*/pulls/*/files) n="${a#*/pulls/}"; n="${n%/files}";; esac; done\n'
+        'for a in "$@"; do case "$a" in\n'
+        '  repos/*/pulls/*/files) n="${a#*/pulls/}"; n="${n%/files}";;\n'
+        '  repos/*/contents/*) c="$(printf \'%s\' "$a" | tr \'/?=\' \'___\')";;\n'
+        'esac; done\n'
         'echo "$*" >> "$ANS/calls.log"\n'
         '[ -n "${n:-}" ] && [ -f "$ANS/$n.ndjson" ] && { cat "$ANS/$n.ndjson"; exit 0; }\n'
-        'echo "gh: HTTP 404" >&2; exit 1\n'
+        '[ -n "${c:-}" ] && [ -f "$ANS/$c.err" ] && { cat "$ANS/$c.err" >&2; exit 1; }\n'
+        '[ -n "${c:-}" ] && [ -f "$ANS/$c.blob" ] && { cat "$ANS/$c.blob"; exit 0; }\n'
+        'echo "gh: Not Found (HTTP 404)" >&2; exit 1\n'
     )
     gh.chmod(gh.stat().st_mode | stat.S_IEXEC)
 
     def set_files(pr: int, files: list[dict]):
         (answers / f"{pr}.ndjson").write_text("".join(json.dumps(f) + "\n" for f in files))
 
-    return {"bin": bin_dir, "set_files": set_files, "log": answers / "calls.log"}
+    def contents_key(repo: str, sha: str, path: str) -> str:
+        return f"repos/{repo}/contents/{path}?ref={sha}".translate(str.maketrans("/?=", "___"))
+
+    def set_blob(repo: str, sha: str, path: str, blob_sha: str):
+        """GitHub serves `path` at `sha` in `repo`, with this git blob SHA."""
+        (answers / f"{contents_key(repo, sha, path)}.blob").write_text(blob_sha + "\n")
+
+    def set_api_error(repo: str, sha: str, path: str, message: str):
+        (answers / f"{contents_key(repo, sha, path)}.err").write_text(message + "\n")
+
+    return {"bin": bin_dir, "set_files": set_files, "set_blob": set_blob,
+            "set_api_error": set_api_error, "log": answers / "calls.log"}
+
+
+HEAD_SHA = "0123abcd" * 5
+VALID_BLOB = subprocess.run(["git", "hash-object", str(ROOT / "tests" / "fixtures" / "valid.svg")],
+                            capture_output=True, text=True, check=True).stdout.strip()
 
 
 @pytest.fixture
 def run_action(tmp_path, workspace, fake_gh):
     script = action_script()
+    # GitHub knows the fixture SVG at the head SHA, in the base and in a fork.
+    for repo in ("acme/widgets", "contributor/widgets"):
+        fake_gh["set_blob"](repo, HEAD_SHA, "tests/fixtures/valid.svg", VALID_BLOB)
 
     def _run(**over):
         n = len(os.listdir(tmp_path))
@@ -93,7 +118,7 @@ def run_action(tmp_path, workspace, fake_gh):
             BODY_IMAGE="not-required",
             PR_BODY="",
             HEAD_REPO="acme/widgets",
-            HEAD_SHA="0123abcd0123abcd0123abcd0123abcd0123abcd",
+            HEAD_SHA=HEAD_SHA,
         )
         env.update({k: str(v) for k, v in over.items()})
         r = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True, cwd=workspace)
@@ -225,11 +250,66 @@ def test_escape_is_off_by_default_and_never_skips_validation(run_action, fake_gh
 RAW_VALID = "https://raw.githubusercontent.com/acme/widgets/0123abcd0123abcd0123abcd0123abcd0123abcd/tests/fixtures/valid.svg"
 
 
-def test_body_image_first_passes_when_description_opens_with_it(run_action):
+def test_body_image_first_passes_when_description_opens_with_it(run_action, fake_gh):
     rc, out, _ = run_action(BODY_IMAGE="first", PR_BODY=f"![Visual summary]({RAW_VALID})\n\n## Summary\n...")
     assert rc == 0, out
     assert "opens with an image of tests/fixtures/valid.svg" in out
+    assert f"acme/widgets@{HEAD_SHA[:8]} serves the validated file" in out
     assert outcome(run_action) == "passed"
+    assert f"repos/acme/widgets/contents/tests/fixtures/valid.svg?ref={HEAD_SHA} --jq .sha" in fake_gh["log"].read_text()
+
+
+# ---- the permalink must really serve the file (visual-pr#15) -----------------
+
+UNPUSHED = "c892a106a99b5dd51f07595e08fdd9bdac57dc44"  # the SHA from the issue: well-formed, never existed
+
+
+def test_body_image_rejects_a_permalink_github_cannot_serve(run_action):
+    """The URL from visual-pr#15: right shape, real-looking SHA, 404 forever.
+    Nothing has to be seeded; the fake gh 404s anything it was not told about."""
+    url = RAW_VALID.replace(HEAD_SHA, UNPUSHED)
+    rc, out, summary = run_action(BODY_IMAGE="first", PR_BODY=f"![Visual summary]({url})")
+    assert rc == 1
+    assert outcome(run_action) == "body-image-missing"
+    assert f"PR description image 404s: acme/widgets has no tests/fixtures/valid.svg at commit {UNPUSHED}" in out
+    assert f"re-pin to {HEAD_SHA}" in out
+    assert f"![Visual summary]({RAW_VALID})" in summary, "recipe prints the permalink that does resolve"
+    assert f"gh api repos/acme/widgets/contents/tests/fixtures/valid.svg?ref={HEAD_SHA} --jq .sha" in summary
+    assert "git hash-object tests/fixtures/valid.svg" in summary
+
+
+def test_body_image_rejects_a_permalink_to_an_older_svg(run_action, fake_gh):
+    """The commit exists and has the file, but not the bytes this job validated:
+    reviewers would open the PR to a stale picture."""
+    older = "fedcba98" * 5
+    fake_gh["set_blob"]("acme/widgets", older, "tests/fixtures/valid.svg", "0" * 40)
+    url = RAW_VALID.replace(HEAD_SHA, older)
+    rc, out, _ = run_action(BODY_IMAGE="included", PR_BODY=f"## Summary\n\n![s]({url})")
+    assert rc == 1
+    assert outcome(run_action) == "body-image-missing"
+    assert f"pinned to {older[:8]}, which has an older tests/fixtures/valid.svg than this PR's head" in out
+    assert f"blob 00000000, head has {VALID_BLOB[:8]}" in out
+
+
+def test_body_image_accepts_an_older_commit_that_has_the_same_svg(run_action, fake_gh):
+    """Pushing more commits after the SVG does not force a re-pin: the picture
+    at the older SHA is byte-identical to the one validated."""
+    older = "fedcba98" * 5
+    fake_gh["set_blob"]("acme/widgets", older, "tests/fixtures/valid.svg", VALID_BLOB)
+    rc, out, _ = run_action(BODY_IMAGE="first", PR_BODY=f"![s]({RAW_VALID.replace(HEAD_SHA, older)})")
+    assert rc == 0, out
+    assert outcome(run_action) == "passed"
+
+
+def test_body_image_api_outage_passes_on_shape_with_a_warning(run_action, fake_gh):
+    """Only a definite 404 fails the PR. Anything else (rate limit, outage)
+    is not the author's fault, so the shape verdict stands, with a warning."""
+    fake_gh["set_api_error"]("acme/widgets", HEAD_SHA, "tests/fixtures/valid.svg", "gh: HTTP 503 Service Unavailable")
+    rc, out, _ = run_action(BODY_IMAGE="first", PR_BODY=f"![s]({RAW_VALID})")
+    assert rc == 0, out
+    assert outcome(run_action) == "passed"
+    assert "::warning::Could not verify that" in out and "503" in out
+    assert "opens with an image of tests/fixtures/valid.svg" in out
 
 
 def test_body_image_first_fails_when_image_is_not_first(run_action):

@@ -26,6 +26,12 @@ Modes:
 
 Exit 0 when satisfied, 1 when not (with a one-line reason on stdout),
 2 on bad arguments.
+
+This script is offline on purpose: it judges the URL's *shape*. `--print-pin`
+adds a second line, `pin: OWNER/REPO <sha>`, naming the permalink it accepted,
+so the caller can ask GitHub whether that commit really serves the file. The
+action does exactly that (`gh api repos/OWNER/REPO/contents/<svg-path>?ref=<sha>`)
+and fails when it 404s or serves a different blob than the one it validated.
 """
 
 import argparse
@@ -119,16 +125,19 @@ def find_images(body: str) -> list[re.Match]:
     return list(IMAGE.finditer(body))
 
 
-def check(body: str, svg_path: str, mode: str, repos: tuple[str, ...] = ()) -> tuple[bool, str]:
+def accepted(body: str, svg_path: str, mode: str, repos: tuple[str, ...] = ()) -> tuple[bool, str, tuple[str, str] | None]:
+    """(satisfied, reason, pin) where pin is the (repo, sha) of the image the
+    verdict rests on — the one a caller should verify against GitHub."""
     if mode == "not-required":
-        return True, "PR description image not required"
+        return True, "PR description image not required", None
     candidates = [m for m in find_images(body) if points_at(url_of(m), svg_path)]
     if not candidates:
-        return False, f"PR description has no image of {svg_path}"
-    if not any(pin_problem(url_of(m), svg_path, repos) is None for m in candidates):
-        return False, pin_problem(url_of(candidates[0]), svg_path, repos)
+        return False, f"PR description has no image of {svg_path}", None
+    sound = [m for m in candidates if pin_problem(url_of(m), svg_path, repos) is None]
+    if not sound:
+        return False, pin_problem(url_of(candidates[0]), svg_path, repos), None
     if mode == "included":
-        return True, f"PR description includes an image of {svg_path}"
+        return True, f"PR description includes an image of {svg_path}", pin_of(url_of(sound[0]), svg_path)
     # first: after leading whitespace / HTML comments, optionally a link
     # wrapper "[", the very next thing must be that image.
     start = LEADING_NOISE.match(body).end()
@@ -138,11 +147,24 @@ def check(body: str, svg_path: str, mode: str, repos: tuple[str, ...] = ()) -> t
     first = IMAGE.match(body, start)
     if first and points_at(url_of(first), svg_path):
         problem = pin_problem(url_of(first), svg_path, repos)
-        return (False, problem) if problem else (True, f"PR description opens with an image of {svg_path}")
+        if problem:
+            return False, problem, None
+        return True, f"PR description opens with an image of {svg_path}", pin_of(url_of(first), svg_path)
     return False, (
         f"PR description contains an image of {svg_path} but does not open with it "
         f"(mode 'first'); move it to the very first line"
-    )
+    ), None
+
+
+def pin_of(url: str, svg_path: str) -> tuple[str, str]:
+    """(repo, sha) of a URL pin_problem() has already accepted."""
+    _host, repo, ref = ref_of(url, svg_path)
+    return repo, ref.lower()
+
+
+def check(body: str, svg_path: str, mode: str, repos: tuple[str, ...] = ()) -> tuple[bool, str]:
+    ok, why, _pin = accepted(body, svg_path, mode, repos)
+    return ok, why
 
 
 def main() -> int:
@@ -152,9 +174,14 @@ def main() -> int:
     ap.add_argument("--repo", action="append", default=[], metavar="OWNER/REPO",
                     help="repository the permalink must name; repeatable (head and base). "
                          "Omit to accept any repository.")
+    ap.add_argument("--print-pin", action="store_true",
+                    help="on success, also print 'pin: OWNER/REPO <sha>' for the accepted image, "
+                         "so the caller can verify the commit serves the file")
     args = ap.parse_args()
-    ok, why = check(sys.stdin.read(), args.svg_path, args.mode, tuple(args.repo))
+    ok, why, pin = accepted(sys.stdin.read(), args.svg_path, args.mode, tuple(args.repo))
     print(why)
+    if ok and pin and args.print_pin:
+        print(f"pin: {pin[0]} {pin[1]}")
     return 0 if ok else 1
 
 

@@ -195,6 +195,14 @@ def test_the_permalink_rule_is_stated_wherever_an_author_will_look():
     for doc in (README, spec_md):
         assert "OWNER/REPO/<40-char head sha>/" in doc
     assert "--repo" in README and "--repo" in ACTION
+    # The shape test is not the whole check (visual-pr#15): the permalink is
+    # looked up, and the recipe shows how. Every author-facing place says so.
+    assert "--print-pin" in ACTION and "--print-pin" in README
+    for doc, name in ((README, "README.md"), (spec_md, "SPEC.md"), (body_input, "action.yml body-image")):
+        assert ("older" in doc or "stale" in doc) and ("looked up" in doc or "asks GitHub" in doc or "GitHub API" in doc), \
+            f"{name} must say the permalink is verified against GitHub, not just its shape"
+    for doc in (README, ACTION):
+        assert "--jq .sha" in doc and "git hash-object" in doc, "the local check mirrors the job's"
 
 
 def test_versioning_is_consistent():
