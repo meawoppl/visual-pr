@@ -1,12 +1,14 @@
 # Changelog
 
-Major tags (`v1`, `v2`) move with fixes; point tags (`v2.0.0`) are exact.
+Major tags (`v1`, `v2`, ...) move with fixes; point tags (`v2.0.0`) are exact.
 A new major is cut whenever a passing PR would look different. Releases are
 cut with `./release.sh vX.Y.Z` — see AGENTS.md for the policy.
 
 ## Unreleased
 
-**Contract change — cut this as v4.** The PR description's image of the summary
+## v4.0.0 — 2026-09-22
+
+**Contract change.** The PR description's image of the summary
 must now be a GitHub *permalink*: a full 40-character commit SHA, naming the
 PR's head or base repository, on `raw.githubusercontent.com/OWNER/REPO/<sha>/...`
 or `github.com/OWNER/REPO/{blob,raw}/<sha>/...`. A branch ref is a hard failure.

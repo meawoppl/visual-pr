@@ -155,7 +155,7 @@ runs:
         [ -n "$STYLE_FILE" ] && STYLE_ARGS=(--style "$STYLE_FILE")
         read -r -a EXTRA <<< "$EXTRA_ARGS"
 
-        BASE_URL="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v3}"
+        BASE_URL="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v4}"
         IMAGE_URL="https://raw.githubusercontent.com/${HEAD_REPO:-OWNER/REPO}/${HEAD_SHA:-HEAD_SHA}/${SVG_DIR}/${SVG_NAME}"
         # The permalink must name a repository that will still serve the blob:
         # the head (where the SVG lives now) or the base (where it lives after
@@ -190,7 +190,7 @@ runs:
 
         emit_fix_instructions() {
           local reason="$1"
-          local base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v3}"
+          local base="https://raw.githubusercontent.com/${ACTION_REPO:-meawoppl/visual-pr}/${ACTION_REF:-v4}"
           # The local command mirrors this job's arguments, minus the Starstruck
           # opt-out: an agent checking its work locally should see that request.
           local extra="" a
