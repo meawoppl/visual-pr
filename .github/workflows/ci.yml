@@ -18,7 +18,7 @@ jobs:
         # check_svg.py uses PEP 604 unions, so 3.10 is the floor.
         python: ['3.10', '3.12', '3.13']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -29,7 +29,7 @@ jobs:
     name: Lint workflows and the composite action's shell
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: actionlint (workflow files)
         run: |
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.7
@@ -48,7 +48,7 @@ jobs:
     name: Composite action end-to-end
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Valid SVG passes
         uses: ./

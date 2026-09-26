@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # The action itself (action.yml, check_svg.py, style/, SPEC.md) from base.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The PR's SVG from the head — data only, never executed.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
